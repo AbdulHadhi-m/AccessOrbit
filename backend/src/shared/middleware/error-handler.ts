@@ -4,10 +4,7 @@ import { logger } from "../logger/logger.js";
 import { HttpStatus } from "../constants/http.js";
 import { sendFailure } from "../utils/response.js";
 import { AppError } from "../errors/http-errors.js";
-
-function isMongoDuplicateKeyError(err: unknown): boolean {
-  return typeof err === "object" && err !== null && (err as { code?: number }).code === 11000;
-}
+import { isDuplicateKeyError } from "../utils/mongo.js";
 
 interface MongoCastError {
   name?: string;
@@ -41,7 +38,7 @@ export const errorHandler: ErrorRequestHandler = (err, req, res, _next) => {
     return;
   }
 
-  if (isMongoDuplicateKeyError(err)) {
+  if (isDuplicateKeyError(err)) {
     sendFailure(res, HttpStatus.CONFLICT, "CONFLICT", "Resource already exists");
     return;
   }

@@ -4,7 +4,7 @@
 
 New modules, sub-modules, operations, permissions, roles, and role assignments are managed as data through the application — no authorization code changes required.
 
-> **Status: Phase 1 (Foundation)** — project skeleton, backend infrastructure, frontend shell, and health endpoint are implemented. Authentication, RBAC administration, and business modules arrive in later phases.
+> **Status: Phase 2 (Database & RBAC Core)** — project skeleton, backend infrastructure, and the full dynamic RBAC data layer (models, repositories, services, permission resolution, idempotent seed) are implemented. Authentication and RBAC administration APIs arrive in later phases.
 
 ## Architecture Summary
 
@@ -75,12 +75,28 @@ AccessOrbit/
    | `JWT_ACCESS_SECRET` | ≥ 32 chars (used in later auth phase) |
    | `JWT_REFRESH_SECRET` | ≥ 32 chars, different from access (later phase) |
    | `LOG_LEVEL` | `info` default |
+   | `SEED_ADMIN_EMAIL` | Optional — email for the seeded super administrator |
+   | `SEED_ADMIN_PASSWORD` | Optional — password for the seeded super administrator (min 8 chars) |
 
 2. **Frontend** — optional; defaults to `http://localhost:4000`:
 
    ```bash
    cp frontend/.env.example frontend/.env.local
    ```
+
+## Seeding the Database
+
+Creates the RBAC hierarchy (modules, sub-modules, operations, permissions), the six system roles, role-permission assignments, and the super administrator user. Safe to run repeatedly:
+
+```bash
+npm run seed
+```
+
+## Tests
+
+```bash
+npm test    # RBAC core tests (uses a separate accessorbit_test database)
+```
 
 ## Installation
 
@@ -102,6 +118,7 @@ npm run dev:frontend  # http://localhost:3000  (Next.js)
 ```bash
 npm run typecheck     # tsc --noEmit in both workspaces
 npm run lint          # ESLint in both workspaces
+npm test              # backend test suite
 npm run format        # Prettier (repo root)
 npm run build         # Production build of both workspaces
 ```
