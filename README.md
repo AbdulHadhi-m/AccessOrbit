@@ -1,248 +1,236 @@
 # AccessOrbit
 
-**Enterprise Access Control and Management Platform** with a fully dynamic Role-Based Access Control (RBAC) system.
+**Enterprise Access Control and Management Platform** with a fully dynamic, runtime-resolved Role-Based Access Control (RBAC) system.
 
-New modules, sub-modules, operations, permissions, roles, and role assignments are managed as data through the application — no authorization code changes required.
+New modules, sub-modules, operations, permissions, roles, and role assignments are managed completely as data through the application — zero code changes or redeployments required.
 
-> **Status: Phase 7 (Dynamic RBAC Administration)** — the full RBAC administration UI is live: users, roles, role-permission assignment, modules, sub-modules, operations, and permissions screens. Every screen is data-driven and gated by permission codes (never role names) via the backend `SafeUser.permissions` + client `can()`. Completed earlier: app shell + auth flow (Phase 6) and the backend RBAC core (Phases 4–5).
+---
 
-## Architecture Summary
+## Key Features
 
-- **Modular monolith** backend — Express + TypeScript + Mongoose, organized into feature modules (`src/modules/*`) with layered internals (routes → controllers → services → repositories → models) on a shared infrastructure base.
-- **Feature-based frontend** — Next.js (App Router) + TypeScript + Tailwind CSS + shadcn/ui, organized into isolated `src/features/*`.
-- **Permission-based authorization** — the RBAC core is data-driven. Authorization checks permission keys (e.g. `employee.view`), never role names.
-- **Monorepo** — npm workspaces (`backend`, `frontend`), independently runnable and deployable.
+- **Dynamic Permission Resolution**: Permissions are evaluated directly from MongoDB on every request via `requireAuth` + `requirePermission("key")`. Modifying a role, assigning a permission, or toggling status takes effect immediately.
+- **4-Tier Hierarchical RBAC Structure**: `Module` → `Sub-Module` → `Operation` → `Permission` architecture.
+- **Full Administration Suite**: Interactive data tables with sorting, pagination, search, and dynamic assignment modals for Users, Roles, Role Permissions, Modules, Sub-Modules, Operations, and Permissions.
+- **Global Instant Search (`Cmd/Ctrl + K`)**: High-performance unified search across users, roles, modules, sub-modules, operations, permissions, and audit logs respecting user permissions.
+- **Comprehensive Audit Trail**: Immutable logging capturing actor identity, action type, IP address, user agent, timestamps, and status with JSON inspection modals and sanitization of sensitive credentials.
+- **Interactive OpenAPI 3.0 Documentation**: Fully tagged Swagger UI with custom dark mode theme, live search filter, and persistent Bearer token authorization.
+- **Enterprise Security**: Rotating HttpOnly refresh cookies, 15-minute in-memory JWT access tokens, token reuse detection, rate limiting, and Helmet security headers.
+
+---
 
 ## Tech Stack
 
-| Layer | Technology |
+| Layer | Technologies |
 |---|---|
-| Frontend | Next.js, TypeScript, Tailwind CSS, shadcn/ui |
-| Backend | Node.js, Express, TypeScript, Mongoose |
-| Database | MongoDB |
-| Validation | Zod |
-| Logging | Pino (structured JSON, redacted secrets) |
-| Security | Helmet, CORS, rate limiting, JWT (access + rotating refresh) |
+| **Frontend** | Next.js (App Router), TypeScript, Tailwind CSS, shadcn/ui, Lucide Icons, Sonner |
+| **Backend** | Node.js, Express, TypeScript, Mongoose, Zod, Pino Logger |
+| **Database** | MongoDB (Mongoose ODM) |
+| **Security & Auth** | JWT (`jsonwebtoken`), `bcrypt`, `helmet`, `cors`, `express-rate-limit` |
+| **API Documentation** | OpenAPI 3.0.3, Swagger UI (`swagger-ui-express`) |
+| **Testing** | Vitest, Supertest, React Testing Library, jsdom |
+
+---
 
 ## Project Structure
 
 ```
 AccessOrbit/
-├── frontend/                  # Next.js application
+├── frontend/                  # Next.js 15+ App Router frontend
 │   └── src/
 │       ├── app/               # Routes, layouts, error/loading/not-found boundaries
-│       ├── features/          # Business features (auth, users, roles, ...)
-│       ├── components/        # Shared UI (ui/ = shadcn primitives)
-│       ├── hooks/             # Shared hooks
-│       ├── services/          # API clients
-│       ├── providers/         # App providers (theme, ...)
-│       ├── lib/               # Utilities (cn, ...)
-│       ├── types/             # Shared types
-│       └── config/            # Environment configuration
-├── backend/                   # Express API
+│       │   ├── (admin)/       # RBAC & Audit admin routes (/users, /roles, /modules, etc.)
+│       │   ├── (auth)/        # Auth routes (/login)
+│       │   ├── dashboard/     # System overview dashboard
+│       │   ├── icon.svg       # Brand favicon
+│       │   └── layout.tsx     # Root layout & providers
+│       ├── features/          # Feature slices (auth, users, roles, permissions, audit-logs)
+│       ├── components/        # Shared UI components & shadcn primitives
+│       ├── hooks/             # Custom React hooks (usePermission, useSession, etc.)
+│       ├── services/          # Typed API clients
+│       ├── providers/         # ThemeProvider, TooltipProvider, etc.
+│       └── lib/               # Utilities & fetch client wrapper
+├── backend/                   # Express TypeScript modular monolith API
 │   └── src/
-│       ├── modules/           # Feature modules (health, and later auth/users/roles/...)
-│       ├── shared/            # Errors, middleware, logger, validation, types, constants
-│       ├── config/            # Zod-validated environment configuration
-│       ├── database/          # MongoDB connection (Mongoose)
-│       ├── app.ts             # Express application assembly
-│       └── server.ts          # Server bootstrap (env → db → listen → graceful shutdown)
-└── docs/                      # Architecture and design documents
+│       ├── modules/           # Feature modules (auth, users, roles, modules, permissions, audit, search, docs)
+│       ├── shared/            # Shared middleware, validators, errors, logger, constants
+│       ├── config/            # Zod-validated environment variables
+│       ├── database/          # Mongoose models, connection, and seeders
+│       ├── app.ts             # Express application configuration
+│       └── server.ts          # Server entry point & graceful shutdown
+└── docs/                      # Architecture documentation & diagrams
 ```
+
+---
 
 ## Prerequisites
 
-- Node.js ≥ 20
-- npm ≥ 10
-- MongoDB (local install or Atlas cluster)
+- **Node.js** ≥ 20.x
+- **npm** ≥ 10.x
+- **MongoDB** (Local instance or MongoDB Atlas cluster)
+
+---
 
 ## Environment Setup
 
-1. **Backend** — copy and edit:
+### 1. Backend Setup
 
-   ```bash
-   cp backend/.env.example backend/.env
-   ```
+Copy the example configuration file:
 
-   Required variables (validated at startup; the app fails fast if any are missing or invalid):
+```bash
+cp backend/.env.example backend/.env
+```
 
-   | Variable | Description |
-   |---|---|
-   | `NODE_ENV` | `development` / `test` / `production` |
-   | `PORT` | API port (default 4000) |
-   | `MONGODB_URI` | MongoDB connection string |
-   | `FRONTEND_URL` | Frontend origin (used for CORS) |
-   | `JWT_ACCESS_SECRET` | ≥ 32 chars — signs 15-minute access tokens |
-   | `JWT_REFRESH_SECRET` | ≥ 32 chars, different from access — reserved for future use |
-   | `LOG_LEVEL` | `info` default |
-   | `SEED_ADMIN_EMAIL` | Optional — email for the seeded super administrator |
-   | `SEED_ADMIN_PASSWORD` | Optional — password for the seeded super administrator (min 8 chars) |
-   | `SEED_DEMO_EMAIL` | Optional — email for the seeded demo user (created only if absent) |
-   | `SEED_DEMO_PASSWORD` | Optional — password for the seeded demo user (min 8 chars) |
+Key environment variables:
 
-2. **Frontend** — optional; defaults to `http://localhost:4000`:
+| Variable | Default / Description |
+|---|---|
+| `NODE_ENV` | `development` / `production` / `test` |
+| `PORT` | `4000` — Backend API listening port |
+| `MONGODB_URI` | `mongodb://localhost:27017/accessorbit` |
+| `FRONTEND_URL` | `http://localhost:3000` (CORS origin whitelist) |
+| `JWT_ACCESS_SECRET` | Secret string for signing 15-min access tokens (min 32 chars) |
+| `JWT_REFRESH_SECRET` | Secret string for refresh token handling (min 32 chars) |
+| `SEED_ADMIN_EMAIL` | `admin@accessorbit.local` — Seeded super administrator email |
+| `SEED_ADMIN_PASSWORD` | `AccessOrbitAdmin2026!` — Seeded super administrator password |
+| `SEED_DEMO_EMAIL` | `demo@accessorbit.local` — Seeded demo user email |
+| `SEED_DEMO_PASSWORD` | `DemoUserAccess2026!` — Seeded password for demo role accounts |
 
-   ```bash
-   cp frontend/.env.example frontend/.env.local
-   ```
+### 2. Frontend Setup
 
-## Seeding the Database
+Copy the frontend configuration file:
 
-Creates the RBAC hierarchy (modules, sub-modules, operations, permissions), the six system roles, role-permission assignments, the super administrator, and (when configured) a demo user with the HR Manager role. Safe to run repeatedly:
+```bash
+cp frontend/.env.example frontend/.env.local
+```
+
+| Variable | Default / Description |
+|---|---|
+| `NEXT_PUBLIC_API_URL` | `http://localhost:4000/api/v1` — Backend base URL |
+
+---
+
+## Database Seeding
+
+Seed the default RBAC hierarchy, default roles, and administrator credentials:
 
 ```bash
 npm run seed
 ```
 
-## Authentication
+This creates:
+- **Core RBAC Hierarchy**: Modules (`rbac`, `employee`, `attendance`, `procurement`), sub-modules, operations, and fine-grained permissions.
+- **Default Roles**: `Super Administrator`, `HR Manager`, `Department Manager`, `Team Lead`, `Employee`, `Auditor`.
+- **Default Super Admin**: `admin@accessorbit.local` / `AccessOrbitAdmin2026!`
+- **Demo Accounts** (Password: `DemoUserAccess2026!`):
+  - `demo@accessorbit.local` (HR Manager)
+  - `hr@accessorbit.local` (HR Manager)
+  - `manager@accessorbit.local` (Department Manager)
+  - `lead@accessorbit.local` (Team Lead)
+  - `employee@accessorbit.local` (Employee)
+  - `auditor@accessorbit.local` (Auditor)
 
-| Endpoint | Description |
-|---|---|
-| `POST /api/v1/auth/login` | Email + password → access token (body) + refresh token (httpOnly cookie) |
-| `POST /api/v1/auth/refresh` | Rotates the refresh token and issues a new access token |
-| `POST /api/v1/auth/logout` | Revokes the refresh-token family and clears the cookie |
-| `GET /api/v1/auth/me` | Current user (requires `Authorization: Bearer <accessToken>`) |
+---
 
-Access tokens expire after 15 minutes and contain only `sub`/`type`/`jti` — permissions are never embedded and are resolved from the RBAC system per request. Refresh tokens are opaque, stored SHA-256 hashed, rotated on every refresh, revoked on logout, and guarded by reuse detection (reusing a rotated token revokes the entire session family).
+## Running the Application
 
-## Frontend (Phase 6)
+### Development Mode
 
-The Next.js app (`frontend/`) provides the application shell and complete authentication flow:
-
-- **`/login`** — sign-in form with client-side validation (Zod), inline field errors, a submission spinner, and typed server-error messages (`AUTH_INVALID_CREDENTIALS`, `AUTH_USER_DISABLED`, `RATE_LIMITED`, ...) including the backend `requestId` for support. Accepts `?redirect=` to return to the original destination after sign-in.
-- **`/dashboard`** — protected route. The dashboard layout guards access client-side (the refresh cookie is httpOnly on the API origin, so sessions hydrate in the browser): while the session is loading it shows a skeleton shell, and unauthenticated visitors are redirected to `/login?redirect=/dashboard`. The shell includes the brand, navigation (RBAC screens are marked "coming soon"), role badges, and a sign-out action.
-- **`/`** — landing page that redirects to `/dashboard` when authenticated.
-
-Auth architecture:
-
-- `services/auth.service.ts` — typed login/refresh/logout/me calls.
-- `lib/api/client.ts` — fetch wrapper over the backend envelope: attaches `Authorization: Bearer`, sends `credentials: "include"` for the refresh cookie, parses `{ success, data }` / `{ success, error }`, throws typed `ApiError` (status/code/details/requestId), and on `401` auth-token errors performs a **single-flight** refresh (`POST /auth/refresh` — concurrent 401s share one request) then retries the original call once.
-- `lib/api/token-store.ts` — in-memory access-token store (the access token is never persisted); the auth provider subscribes to it so a failed refresh signs the session out automatically.
-- `providers/auth-provider.tsx` + `hooks/use-session.ts` — `AuthProvider` with `user`, `status` (`loading | authenticated | unauthenticated`), `login`, and `logout`. On mount it hydrates via `GET /auth/me` and falls back to a refresh-token exchange if the access token is missing/expired.
-- `types/` — `ApiSuccess`/`ApiFailure` envelope types and auth domain types (`User`, `AuthSession`, `AuthStatus`, `ApiError`).
-
-Access tokens live only in memory (15-minute lifetime, refreshed transparently), so no sensitive material touches cookies or storage on the frontend.
-
-## Frontend (Phase 7) — RBAC administration
-
-The backend session now includes the user's effective permission codes (`SafeUser.permissions`), so the UI can gate itself client-side — strictly permission-based, never role-name checks. Authorization is centralized in `hooks/use-permission.ts`: `usePermission()` exposes `hasPermission`/`hasAnyPermission`/`hasAllPermissions` (flexible string keys, so newly created backend permissions like `inventory.view` work without code changes), and `usePermissionError()` maps backend 403s to a friendly message while refreshing the session so revoked permissions self-correct. `PermissionGuard` renders children only when the required permission (or `anyOf`/`allOf`) is granted, with a configurable `fallback` (default: the Access Denied screen). Navigation is filtered to the sections the current user may access, and any route lacking its permission renders the `/access-denied` page — login is only for unauthenticated users.
-
-Screens (all under the `/admin` route group, all static, all data-driven):
-
-- **`/admin/users`** (`rbac.users.*`) — paginated table with search, status filter, sorting, and column-aware empty/error/skeleton states; create/edit dialogs; suspend/activate and delete with confirmation; role assignment dialog (`POST /users/:id/roles`). No password hashes or refresh tokens ever reach the UI.
-- **`/admin/roles`** (`rbac.roles.*`) — same list/CRUD treatment plus an active toggle; the super-administrator role is protected against disable/delete.
-- **`/admin/roles/:id/permissions`** (`rbac.role-permissions.*`) — assign permissions to a role using a dynamic module → sub-module → operation → permission hierarchy (from `GET /modules/hierarchy`), each row toggled immediately (no save step) with toast feedback.
-- **`/admin/modules`** (`rbac.modules.*`, `rbac.sub-modules.*`, `rbac.operations.*`) — three linked tabs: modules, their sub-modules, and operations, with full CRUD on each and module-context filtering.
-- **`/admin/permissions`** (`rbac.permissions.*`) — permissions filtered by module, keyed to the operation that owns them; create/edit/activate/delete. Keys must match the shared slug pattern (e.g. `purchase-orders.view`) — underscores are rejected by both client and server.
-
-Shared building blocks: `lib/query/query-client.ts` (a lightweight `useQuery` with cached refetch + invalidation), the permission layer (see Authorization below), typed services per feature, form dialogs with inline Zod validation, confirm dialogs, toast notifications, and skeleton/empty/error states on every list. If the backend rejects a call the UI believed was allowed (permission revoked mid-session), the request surfaces a friendly permission error and the session is re-fetched — the backend remains the final security authority.
-
-Feature tests (Vitest + Testing Library) cover users, roles, permissions, authorization (`PermissionGuard`, `usePermission`, 403 handling, and admin shell navigation), and the dashboard; run with `npm test -w frontend`.
-
-## Frontend (Phase 8) — Admin dashboard and system overview
-
-`/dashboard` (available to every authenticated user, content permission-gated) replaces the static welcome screen with a live system overview, built entirely from existing APIs — no dashboard-specific backend. One `useDashboard` hook fires parallel calls for users, roles, permissions, and the module hierarchy (results cached under a user-scoped query key so one account never sees another's data), each section rendered only when its permission is held:
-
-- **Stat cards** — total / active / suspended users (`rbac.users.view`), roles (`rbac.roles.view`), modules (`rbac.modules.view`), permissions (`rbac.permissions.view`).
-- **RBAC structure** — module → sub-module → operation → permission flow with per-module counts from `GET /modules/hierarchy`.
-- **Recent lists** — newest users, roles, and permissions with status badges and relative timestamps, linking to the admin screens.
-
-Loading renders skeletons (never misleading zeros); failures show a friendly error card with Retry; users without any dashboard permission get a dedicated empty state. Layout is responsive (cards collapse on mobile, the RBAC flow becomes vertical).
-
-## Authorization
-
-Protecting an endpoint is two layers, kept fully separate:
-
-```ts
-router.get("/employees", requireAuth, requirePermission("employee.employees.view"), controller);
-```
-
-- **`requireAuth`** answers *who the user is* (identity from the JWT).
-- **`requirePermission("key")`** answers *what the user may do* — it resolves the user's active roles → enabled role-permission rows → active permissions from MongoDB **on every request**, then denies with `403 AUTH_FORBIDDEN` if the key is absent.
-
-Authorization never consults role names, and never trusts client-supplied role IDs, permission arrays, or user IDs. Because resolution is database-backed, adding/removing/disabling a permission or changing a user's role takes effect immediately — no redeploy, no token reissue. Access tokens contain no permission claims, so they stay valid for their 15-minute lifetime regardless of RBAC changes; each request re-resolves against current database state.
-
-**Caching boundary:** resolution is currently uncached by design (correctness over premature optimization). The `permissionResolutionService` API (`resolvePermissionsForUser(userId) → { permissions }`) is the single seam where a generation-stamped Redis cache can be introduced later without touching middleware or routes.
-
-Verification endpoints exist under `GET/POST/DELETE /api/v1/test/employee-{view,create,delete}` (protected by `employee.employees.*`) until real business modules are built.
-
-## Admin API (RBAC management)
-
-All admin endpoints are protected by `requireAuth` + a dynamic permission (`rbac.*`) — never by role name. Slugs and permission keys are derived server-side (e.g. role `slug` from `name`); keys are immutable once created because they are embedded in permission-key strings.
-
-| Group | Endpoints | Permission required |
-|---|---|---|
-| Users | `GET/POST /api/v1/users`, `GET/PATCH/DELETE /api/v1/users/:id`, `POST /api/v1/users/:id/roles` | `rbac.users.{view,create,update,delete,assign-roles}` |
-| Roles | `GET/POST /api/v1/roles`, `GET/PATCH/DELETE /api/v1/roles/:id` | `rbac.roles.{view,create,update,delete}` |
-| Role permissions | `GET /api/v1/roles/:id/permissions`, `POST /api/v1/roles/:id/permissions`, `DELETE /api/v1/roles/:id/permissions/:permissionId` | `rbac.role-permissions.{view,assign,remove}` |
-| Modules | `GET/POST /api/v1/modules`, `GET/PATCH/DELETE /api/v1/modules/:id`, `GET /api/v1/modules/hierarchy` | `rbac.modules.*` |
-| Sub-Modules | `GET/POST /api/v1/sub-modules`, `GET/PATCH/DELETE /api/v1/sub-modules/:id` | `rbac.sub-modules.*` |
-| Operations | `GET/POST /api/v1/operations`, `GET/PATCH/DELETE /api/v1/operations/:id` | `rbac.operations.*` |
-| Permissions | `GET/POST /api/v1/permissions`, `GET/PATCH/DELETE /api/v1/permissions/:id` | `rbac.permissions.*` |
-| Audit Logs | `GET /api/v1/audit-logs` | `audit.view` |
-
-Behavior highlights:
-- Read-only Audit Logging API (`GET /api/v1/audit-logs`) with query filters (`category`, `action`, `status`, `actorId`, `startDate`, `endDate`, `search`), pagination, and strict read-only enforcement.
-- Automatic non-blocking auditing for authentication (login success/failure, logout) and administrative CRUD operations across users, roles, modules, sub-modules, operations, permissions, and role-permission assignments.
-- Automatic recursive field sanitization redacting passwords, secrets, and auth tokens before persistence.
-- Lists support pagination (`page`, `limit`), `search`, and `sort`/`order` (e.g. `GET /users?search=jane&status=active&sort=email&order=asc`).
-- Error codes: `404` unknown resource, `422` invalid body/relationship (e.g. operation's sub-module belongs to a different module), `409` duplicates and integrity blocks (system role, role in use, module/sub-module/operation/permission referenced by children, self-disable/self-delete).
-- Role membership and permission grants take effect immediately — no token reissue (resolution is per-request, see Authorization above).
-- No `passwordHash` or refresh tokens are ever returned.
-
-Interactive OpenAPI documentation: `GET /api/v1/docs` (Swagger UI) and raw spec at `GET /api/v1/docs/json`.
-
-## Tests
+Start both the backend and frontend concurrently:
 
 ```bash
-npm test    # backend: auth + RBAC core tests (uses a separate accessorbit_test database)
-npm test -w frontend   # frontend: feature + authorization tests (Vitest + Testing Library, jsdom)
+# Terminal 1: Backend (http://localhost:4000)
+npm run dev:backend
+
+# Terminal 2: Frontend (http://localhost:3000)
+npm run dev:frontend
 ```
 
-## Installation
+### Access URLs:
+- **Web App**: `http://localhost:3000`
+- **API Base**: `http://localhost:4000/api/v1`
+- **Swagger Documentation**: `http://localhost:4000/api/v1/docs/`
+- **OpenAPI JSON Spec**: `http://localhost:4000/api/v1/docs/json`
+- **Health Check**: `http://localhost:4000/api/v1/health`
+
+---
+
+## API Reference Overview
+
+All administrative API endpoints are prefixed with `/api/v1` and protected by `requireAuth` + granular permission codes:
+
+| Tag | Endpoint | Method | Permission Required | Description |
+|---|---|:---:|---|---|
+| **Health** | `/health` | `GET` | *Public* | System health & MongoDB connection state |
+| **Authentication** | `/auth/login` | `POST` | *Public* | Authenticate user & issue JWT tokens |
+| | `/auth/refresh` | `POST` | *Public* | Rotate refresh cookie & issue access token |
+| | `/auth/logout` | `POST` | `Bearer` | Revoke session & clear HttpOnly cookie |
+| | `/auth/me` | `GET` | `Bearer` | Get authenticated user profile & permissions |
+| **Users** | `/users` | `GET` | `rbac.users.view` | List users with pagination, filter, & search |
+| | `/users` | `POST` | `rbac.users.create` | Create a user account |
+| | `/users/:id` | `GET` | `rbac.users.view` | Get user by ID |
+| | `/users/:id` | `PATCH` | `rbac.users.update` | Update user details / toggle active status |
+| | `/users/:id` | `DELETE` | `rbac.users.delete` | Delete user account |
+| | `/users/:id/roles` | `POST` | `rbac.users.assign-roles` | Replace user role assignments |
+| **Roles** | `/roles` | `GET` | `rbac.roles.view` | List roles with assigned permission keys |
+| | `/roles` | `POST` | `rbac.roles.create` | Create custom role |
+| | `/roles/:id` | `GET` | `rbac.roles.view` | Get role by ID |
+| | `/roles/:id` | `PATCH` | `rbac.roles.update` | Update role name / description / active state |
+| | `/roles/:id` | `DELETE` | `rbac.roles.delete` | Delete custom role (system roles protected) |
+| **Role Permissions** | `/roles/:id/permissions` | `GET` | `rbac.role-permissions.view` | List permissions bound to a role |
+| | `/roles/:id/permissions` | `POST` | `rbac.role-permissions.assign` | Assign permission key to role |
+| | `/roles/:id/permissions/:permissionId` | `DELETE` | `rbac.role-permissions.remove` | Remove permission from role |
+| **Modules** | `/modules` | `GET` | `rbac.modules.view` | List top-level domain modules |
+| | `/modules/hierarchy` | `GET` | `rbac.modules.view` | Get complete 4-tier RBAC tree hierarchy |
+| | `/modules` | `POST` | `rbac.modules.create` | Create new top-level module |
+| | `/modules/:id` | `GET` | `rbac.modules.view` | Get module by ID |
+| | `/modules/:id` | `PATCH` | `rbac.modules.update` | Update module metadata |
+| | `/modules/:id` | `DELETE` | `rbac.modules.delete` | Delete module (if not in use) |
+| **Sub-Modules** | `/sub-modules` | `GET` | `rbac.sub-modules.view` | List sub-modules with module filter |
+| | `/sub-modules` | `POST` | `rbac.sub-modules.create` | Create new sub-module |
+| | `/sub-modules/:id` | `PATCH` | `rbac.sub-modules.update` | Update sub-module |
+| | `/sub-modules/:id` | `DELETE` | `rbac.sub-modules.delete` | Delete sub-module |
+| **Operations** | `/operations` | `GET` | `rbac.operations.view` | List operations |
+| | `/operations` | `POST` | `rbac.operations.create` | Create functional operation |
+| | `/operations/:id` | `PATCH` | `rbac.operations.update` | Update operation |
+| | `/operations/:id` | `DELETE` | `rbac.operations.delete` | Delete operation |
+| **Permissions** | `/permissions` | `GET` | `rbac.permissions.view` | List permission codes |
+| | `/permissions` | `POST` | `rbac.permissions.create` | Create atomic permission code |
+| | `/permissions/:id` | `PATCH` | `rbac.permissions.update` | Update permission or toggle active state |
+| | `/permissions/:id` | `DELETE` | `rbac.permissions.delete` | Delete permission |
+| **Audit Logs** | `/audit-logs` | `GET` | `audit.view` | Query compliance audit event trail |
+| **Search** | `/search` | `GET` | `Bearer` | Global cross-entity search (`?q=...`) |
+
+---
+
+## Testing & Quality Assurance
+
+AccessOrbit includes automated unit and integration tests across both the backend and frontend:
 
 ```bash
-npm install
+# Run all backend tests (17 test suites, 170+ assertions)
+npm test
+
+# Run all frontend tests (9 test suites, 59+ assertions)
+npm test -w frontend
+
+# Run TypeScript typechecks across both packages
+npm run typecheck
+
+# Run linter
+npm run lint
 ```
 
-## Development
+---
 
-Run both apps (from the repo root):
+## Production Build
 
 ```bash
-npm run dev:backend   # http://localhost:4000  (tsx watch)
-npm run dev:frontend  # http://localhost:3000  (Next.js)
+# Build both backend and frontend bundles
+npm run build
 ```
 
-## Checks and Build
+---
 
-```bash
-npm run typecheck     # tsc --noEmit in both workspaces
-npm run lint          # ESLint in both workspaces
-npm test              # backend test suite
-npm run format        # Prettier (repo root)
-npm run build         # Production build of both workspaces
-```
+## License
 
-## Health Endpoint
-
-```
-GET http://localhost:4000/api/v1/health
-```
-
-Returns `200` with `status: "ok"` and `database: "up"` when connected, or `503` (`SERVICE_UNAVAILABLE`) when the database is unreachable.
-
-## API
-
-- Base path: `/api/v1`
-- Consistent response envelope: `{ success, message, data, requestId }` / `{ success, error: { code, message, details }, requestId }`
-- Centralized error handling — no stack traces or internal details leak to clients.
-- Swagger UI: `http://localhost:4000/api/v1/docs` — Raw OpenAPI 3.0 spec: `http://localhost:4000/api/v1/docs/json`
-
-## Deployment (planned)
-
-- Frontend → Vercel
-- API → Render
-- MongoDB → MongoDB Atlas
-
-Details will be documented in the README once deployment is implemented.
+Private and proprietary. Designed and maintained for enterprise access control governance.
