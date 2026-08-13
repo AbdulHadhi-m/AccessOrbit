@@ -4,7 +4,7 @@
 
 New modules, sub-modules, operations, permissions, roles, and role assignments are managed as data through the application — no authorization code changes required.
 
-> **Status: Phase 4 (Authorization)** — dynamic RBAC authorization middleware is live: `requireAuth` → `requirePermission("module.subModule.operation")` → 403 `AUTH_FORBIDDEN` on denial. Permissions resolve from the database on every request (role active + assignment enabled + permission active), so role/permission changes take effect instantly with no redeploy. No caching yet — the resolution service is isolated so Redis can be introduced behind the same API later. RBAC administration APIs and the frontend come next.
+> **Status: Phase 6 (Frontend Foundation & Authentication)** — the Next.js app shell and complete client-side auth flow are live: login page, session hydration via `GET /auth/me` + `POST /auth/refresh`, in-memory access token with automatic single-flight refresh on 401, protected `/dashboard` layout with guard + loading skeleton, logout, and typed API error handling (request IDs surfaced on login failures). RBAC administration screens come next.
 
 ## Architecture Summary
 
@@ -104,6 +104,24 @@ npm run seed
 | `GET /api/v1/auth/me` | Current user (requires `Authorization: Bearer <accessToken>`) |
 
 Access tokens expire after 15 minutes and contain only `sub`/`type`/`jti` — permissions are never embedded and are resolved from the RBAC system per request. Refresh tokens are opaque, stored SHA-256 hashed, rotated on every refresh, revoked on logout, and guarded by reuse detection (reusing a rotated token revokes the entire session family).
+
+## Frontend (Phase 6)
+
+The Next.js app (`frontend/`) provides the application shell and complete authentication flow:
+
+- **`/login`** — sign-in form with client-side validation (Zod), inline field errors, a submission spinner, and typed server-error messages (`AUTH_INVALID_CREDENTIALS`, `AUTH_USER_DISABLED`, `RATE_LIMITED`, ...) including the backend `requestId` for support. Accepts `?redirect=` to return to the original destination after sign-in.
+- **`/dashboard`** — protected route. The dashboard layout guards access client-side (the refresh cookie is httpOnly on the API origin, so sessions hydrate in the browser): while the session is loading it shows a skeleton shell, and unauthenticated visitors are redirected to `/login?redirect=/dashboard`. The shell includes the brand, navigation (RBAC screens are marked "coming soon"), role badges, and a sign-out action.
+- **`/`** — landing page that redirects to `/dashboard` when authenticated.
+
+Auth architecture:
+
+- `services/auth.service.ts` — typed login/refresh/logout/me calls.
+- `lib/api/client.ts` — fetch wrapper over the backend envelope: attaches `Authorization: Bearer`, sends `credentials: "include"` for the refresh cookie, parses `{ success, data }` / `{ success, error }`, throws typed `ApiError` (status/code/details/requestId), and on `401` auth-token errors performs a **single-flight** refresh (`POST /auth/refresh` — concurrent 401s share one request) then retries the original call once.
+- `lib/api/token-store.ts` — in-memory access-token store (the access token is never persisted); the auth provider subscribes to it so a failed refresh signs the session out automatically.
+- `providers/auth-provider.tsx` + `hooks/use-session.ts` — `AuthProvider` with `user`, `status` (`loading | authenticated | unauthenticated`), `login`, and `logout`. On mount it hydrates via `GET /auth/me` and falls back to a refresh-token exchange if the access token is missing/expired.
+- `types/` — `ApiSuccess`/`ApiFailure` envelope types and auth domain types (`User`, `AuthSession`, `AuthStatus`, `ApiError`).
+
+Access tokens live only in memory (15-minute lifetime, refreshed transparently), so no sensitive material touches cookies or storage on the frontend.
 
 ## Authorization
 
