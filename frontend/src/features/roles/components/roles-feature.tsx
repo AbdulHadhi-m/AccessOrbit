@@ -5,7 +5,7 @@ import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { DataPanel } from "@/components/data-panel";
 import { SearchInput } from "@/components/data-table/search-input";
 import { SelectFilter } from "@/components/data-table/select-filter";
 import { PaginationControls } from "@/components/data-table/pagination";
@@ -101,9 +101,9 @@ export function RolesFeature() {
         )}
       </PageHeader>
 
-      <Card>
-        <CardContent className="space-y-3 p-4">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+      <DataPanel
+        toolbar={
+          <div className="table-toolbar">
             <SearchInput
               value={search}
               onChange={(value) => {
@@ -126,26 +126,8 @@ export function RolesFeature() {
               ariaLabel="Filter by status"
             />
           </div>
-
-          <div className="rounded-lg border">
-            <RolesTable
-              data={data?.items ?? []}
-              loading={loading}
-              error={error}
-              onRetry={refetch}
-              canUpdate={canUpdate}
-              canDelete={canDelete}
-              canManagePermissions={canManagePermissions}
-              sort={sort}
-              order={order}
-              onSortChange={handleSortChange}
-              onEdit={(role) => setDialog({ kind: "edit", role })}
-              onManagePermissions={(role) => setDialog({ kind: "permissions", role })}
-              onToggleStatus={(role) => void handleToggleStatus(role)}
-              onDelete={(role) => setDialog({ kind: "delete", role })}
-            />
-          </div>
-
+        }
+        footer={
           <PaginationControls
             page={page}
             totalPages={data?.totalPages ?? 1}
@@ -154,8 +136,25 @@ export function RolesFeature() {
             onPageChange={setPage}
             disabled={loading}
           />
-        </CardContent>
-      </Card>
+        }
+      >
+        <RolesTable
+          data={data?.items ?? []}
+          loading={loading}
+          error={error}
+          onRetry={refetch}
+          canUpdate={canUpdate}
+          canDelete={canDelete}
+          canManagePermissions={canManagePermissions}
+          sort={sort}
+          order={order}
+          onSortChange={handleSortChange}
+          onEdit={(role) => setDialog({ kind: "edit", role })}
+          onManagePermissions={(role) => setDialog({ kind: "permissions", role })}
+          onToggleStatus={(role) => void handleToggleStatus(role)}
+          onDelete={(role) => setDialog({ kind: "delete", role })}
+        />
+      </DataPanel>
 
       {dialog?.kind === "create" && (
         <RoleFormDialog open onOpenChange={(open) => !open && setDialog(null)} role={null} />
@@ -183,7 +182,7 @@ export function RolesFeature() {
             <>
               Are you sure you want to delete the role{" "}
               <span className="font-medium">{dialog.role.name}</span>? Roles assigned to users
-              cannot be deleted â€” deactivate them instead.
+              cannot be deleted — deactivate them instead.
             </>
           }
           confirmLabel="Delete role"

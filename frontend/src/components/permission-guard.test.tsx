@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { useSession } from "@/hooks/use-session";
 import { PermissionGuard } from "./permission-guard";
 import { DashboardShell } from "./layout/dashboard-shell";
@@ -78,7 +78,7 @@ describe("PermissionGuard", () => {
       </PermissionGuard>
     );
     expect(screen.queryByText("Secret content")).not.toBeInTheDocument();
-    expect(screen.getByText("Access denied")).toBeInTheDocument();
+    expect(screen.getByText("Access restricted")).toBeInTheDocument();
   });
 
   it("supports anyOf and denies when none match", () => {
@@ -115,7 +115,7 @@ describe("PermissionGuard", () => {
       </PermissionGuard>
     );
     expect(screen.queryByText("All content")).not.toBeInTheDocument();
-    expect(screen.getByText("Access denied")).toBeInTheDocument();
+    expect(screen.getByText("Access restricted")).toBeInTheDocument();
   });
 
   it("renders nothing instead of the access denied page when fallback is null", () => {
@@ -126,7 +126,7 @@ describe("PermissionGuard", () => {
       </PermissionGuard>
     );
     expect(screen.queryByRole("button", { name: "Delete user" })).not.toBeInTheDocument();
-    expect(screen.queryByText("Access denied")).not.toBeInTheDocument();
+    expect(screen.queryByText("Access restricted")).not.toBeInTheDocument();
   });
 
   it("renders a custom fallback", () => {
@@ -147,7 +147,7 @@ describe("PermissionGuard", () => {
       </PermissionGuard>
     );
     expect(screen.queryByText("Secret content")).not.toBeInTheDocument();
-    expect(screen.queryByText("Access denied")).not.toBeInTheDocument();
+    expect(screen.queryByText("Access restricted")).not.toBeInTheDocument();
   });
 
   it("evaluates dynamically created permission strings", () => {
@@ -170,7 +170,7 @@ describe("Scenario: page-level authorization", () => {
       </PermissionGuard>
     );
     expect(screen.queryByText("Modules content")).not.toBeInTheDocument();
-    expect(screen.getByText("Access denied")).toBeInTheDocument();
+    expect(screen.getByText("Access restricted")).toBeInTheDocument();
   });
 });
 
@@ -187,11 +187,12 @@ describe("DashboardShell navigation", () => {
         <p>Page content</p>
       </DashboardShell>
     );
-    expect(screen.getByRole("link", { name: "Dashboard" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Users" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Roles" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Modules" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Permissions" })).toBeInTheDocument();
+    const nav = screen.getByRole("navigation", { name: "Main navigation" });
+    expect(within(nav).getByRole("link", { name: "Dashboard" })).toBeInTheDocument();
+    expect(within(nav).getByRole("link", { name: "Users" })).toBeInTheDocument();
+    expect(within(nav).getByRole("link", { name: "Roles" })).toBeInTheDocument();
+    expect(within(nav).getByRole("link", { name: "Modules" })).toBeInTheDocument();
+    expect(within(nav).getByRole("link", { name: "Permissions" })).toBeInTheDocument();
     expect(screen.getByText("Page content")).toBeInTheDocument();
   });
 
@@ -202,10 +203,11 @@ describe("DashboardShell navigation", () => {
         <p>Page content</p>
       </DashboardShell>
     );
-    expect(screen.getByRole("link", { name: "Users" })).toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: "Roles" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: "Modules" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: "Permissions" })).not.toBeInTheDocument();
+    const nav = screen.getByRole("navigation", { name: "Main navigation" });
+    expect(within(nav).getByRole("link", { name: "Users" })).toBeInTheDocument();
+    expect(within(nav).queryByRole("link", { name: "Roles" })).not.toBeInTheDocument();
+    expect(within(nav).queryByRole("link", { name: "Modules" })).not.toBeInTheDocument();
+    expect(within(nav).queryByRole("link", { name: "Permissions" })).not.toBeInTheDocument();
   });
 
   it("shows only the Dashboard link for a user with no rbac permissions", () => {
@@ -215,11 +217,12 @@ describe("DashboardShell navigation", () => {
         <p>Page content</p>
       </DashboardShell>
     );
-    expect(screen.getByRole("link", { name: "Dashboard" })).toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: "Users" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: "Roles" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: "Modules" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: "Permissions" })).not.toBeInTheDocument();
+    const nav = screen.getByRole("navigation", { name: "Main navigation" });
+    expect(within(nav).getByRole("link", { name: "Dashboard" })).toBeInTheDocument();
+    expect(within(nav).queryByRole("link", { name: "Users" })).not.toBeInTheDocument();
+    expect(within(nav).queryByRole("link", { name: "Roles" })).not.toBeInTheDocument();
+    expect(within(nav).queryByRole("link", { name: "Modules" })).not.toBeInTheDocument();
+    expect(within(nav).queryByRole("link", { name: "Permissions" })).not.toBeInTheDocument();
   });
 
   it("shows a skeleton shell during loading instead of navigation (no flicker)", () => {

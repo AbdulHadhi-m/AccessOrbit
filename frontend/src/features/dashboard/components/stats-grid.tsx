@@ -25,12 +25,14 @@ export function StatsGrid({ data, access }: StatsGridProps) {
             icon={UserCheck}
             value={data.users.active}
             description="Accounts with access"
+            accent="success"
           />
           <StatCard
             title="Inactive users"
             icon={UserX}
             value={data.users.suspended}
             description="Suspended accounts"
+            accent="destructive"
           />
         </>
       )}

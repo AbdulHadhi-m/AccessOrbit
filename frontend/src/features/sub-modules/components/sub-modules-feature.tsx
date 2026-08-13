@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { DataPanel } from "@/components/data-panel";
 import { SearchInput } from "@/components/data-table/search-input";
 import { SelectFilter } from "@/components/data-table/select-filter";
 import { PaginationControls } from "@/components/data-table/pagination";
@@ -89,9 +89,9 @@ export function SubModulesFeature() {
         )}
       </div>
 
-      <Card>
-        <CardContent className="space-y-3 p-4">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+      <DataPanel
+        toolbar={
+          <div className="table-toolbar">
             <SearchInput
               value={search}
               onChange={(value) => {
@@ -111,22 +111,8 @@ export function SubModulesFeature() {
               ariaLabel="Filter by module"
             />
           </div>
-
-          <div className="rounded-lg border">
-            <SubModulesTable
-              data={data?.items ?? []}
-              modules={moduleOptions ?? []}
-              loading={loading}
-              error={error}
-              onRetry={refetch}
-              canUpdate={canUpdate}
-              canDelete={canDelete}
-              onEdit={(subModule) => setDialog({ kind: "edit", subModule })}
-              onToggleStatus={(subModule) => void handleToggleStatus(subModule)}
-              onDelete={(subModule) => setDialog({ kind: "delete", subModule })}
-            />
-          </div>
-
+        }
+        footer={
           <PaginationControls
             page={page}
             totalPages={data?.totalPages ?? 1}
@@ -135,8 +121,21 @@ export function SubModulesFeature() {
             onPageChange={setPage}
             disabled={loading}
           />
-        </CardContent>
-      </Card>
+        }
+      >
+        <SubModulesTable
+          data={data?.items ?? []}
+          modules={moduleOptions ?? []}
+          loading={loading}
+          error={error}
+          onRetry={refetch}
+          canUpdate={canUpdate}
+          canDelete={canDelete}
+          onEdit={(subModule) => setDialog({ kind: "edit", subModule })}
+          onToggleStatus={(subModule) => void handleToggleStatus(subModule)}
+          onDelete={(subModule) => setDialog({ kind: "delete", subModule })}
+        />
+      </DataPanel>
 
       {dialog?.kind === "create" && (
         <SubModuleFormDialog

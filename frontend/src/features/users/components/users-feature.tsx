@@ -5,7 +5,7 @@ import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { DataPanel } from "@/components/data-panel";
 import { SearchInput } from "@/components/data-table/search-input";
 import { SelectFilter } from "@/components/data-table/select-filter";
 import { PaginationControls } from "@/components/data-table/pagination";
@@ -114,9 +114,9 @@ export function UsersFeature() {
         )}
       </PageHeader>
 
-      <Card>
-        <CardContent className="space-y-3 p-4">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+      <DataPanel
+        toolbar={
+          <div className="table-toolbar">
             <SearchInput
               value={search}
               onChange={(value) => {
@@ -153,29 +153,9 @@ export function UsersFeature() {
               />
             </div>
           </div>
-
-          <div className="rounded-lg border">
-            <UsersTable
-              data={rows}
-              total={total}
-              loading={loading}
-              error={error}
-              onRetry={refetch}
-              canUpdate={canUpdate}
-              canDelete={canDelete}
-              canAssignRoles={canAssignRoles}
-              sort={sort}
-              order={order}
-              onSortChange={handleSortChange}
-              onView={(user) => setDialog({ kind: "details", user })}
-              onEdit={(user) => setDialog({ kind: "edit", user })}
-              onManageRoles={(user) => setDialog({ kind: "roles", user })}
-              onToggleStatus={(user) => void handleToggleStatus(user)}
-              onDelete={(user) => setDialog({ kind: "delete", user })}
-            />
-          </div>
-
-          {!roleFilter && (
+        }
+        footer={
+          !roleFilter ? (
             <PaginationControls
               page={page}
               totalPages={totalPages}
@@ -184,14 +164,32 @@ export function UsersFeature() {
               onPageChange={setPage}
               disabled={loading}
             />
-          )}
-          {roleFilter && rows.length > 0 && (
+          ) : rows.length > 0 ? (
             <p className="text-sm text-muted-foreground">
               {rows.length} result{rows.length === 1 ? "" : "s"} for the selected role.
             </p>
-          )}
-        </CardContent>
-      </Card>
+          ) : null
+        }
+      >
+        <UsersTable
+          data={rows}
+          total={total}
+          loading={loading}
+          error={error}
+          onRetry={refetch}
+          canUpdate={canUpdate}
+          canDelete={canDelete}
+          canAssignRoles={canAssignRoles}
+          sort={sort}
+          order={order}
+          onSortChange={handleSortChange}
+          onView={(user) => setDialog({ kind: "details", user })}
+          onEdit={(user) => setDialog({ kind: "edit", user })}
+          onManageRoles={(user) => setDialog({ kind: "roles", user })}
+          onToggleStatus={(user) => void handleToggleStatus(user)}
+          onDelete={(user) => setDialog({ kind: "delete", user })}
+        />
+      </DataPanel>
 
       {dialog?.kind === "create" && (
         <UserFormDialog

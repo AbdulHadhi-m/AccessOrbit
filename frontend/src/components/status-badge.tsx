@@ -1,23 +1,44 @@
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 export type StatusValue = "active" | "inactive" | "suspended";
 
 interface StatusBadgeProps {
   status: StatusValue;
+  className?: string;
 }
 
-const VARIANT_MAP = {
-  active: "default" as const,
-  inactive: "outline" as const,
-  suspended: "destructive" as const,
+const CONFIG: Record<
+  StatusValue,
+  { label: string; variant: "default" | "outline" | "destructive"; dot: string }
+> = {
+  active: {
+    label: "Active",
+    variant: "default",
+    dot: "bg-success",
+  },
+  inactive: {
+    label: "Inactive",
+    variant: "outline",
+    dot: "bg-muted-foreground",
+  },
+  suspended: {
+    label: "Suspended",
+    variant: "destructive",
+    dot: "bg-destructive",
+  },
 };
 
-const LABEL_MAP = {
-  active: "Active",
-  inactive: "Inactive",
-  suspended: "Suspended",
-};
+export function StatusBadge({ status, className }: StatusBadgeProps) {
+  const config = CONFIG[status];
 
-export function StatusBadge({ status }: StatusBadgeProps) {
-  return <Badge variant={VARIANT_MAP[status]}>{LABEL_MAP[status]}</Badge>;
+  return (
+    <Badge variant={config.variant} className={cn("gap-1.5 font-normal", className)}>
+      <span
+        className={cn("size-1.5 shrink-0 rounded-full", config.dot)}
+        aria-hidden="true"
+      />
+      {config.label}
+    </Badge>
+  );
 }

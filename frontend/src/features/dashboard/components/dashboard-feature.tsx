@@ -1,9 +1,10 @@
 "use client";
 
-import { AlertTriangle, Blocks, KeyRound, RefreshCw, Shield, ShieldOff, UserCheck, UserX, Users } from "lucide-react";
+import { AlertTriangle, Blocks, KeyRound, Shield, ShieldOff, UserCheck, UserX, Users } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
+import { EmptyState } from "@/components/empty-state";
+import { ErrorState } from "@/components/error-state";
 import { PERMISSIONS } from "@/config/permissions";
 import { usePermission } from "@/hooks/use-permission";
 import { useDashboard } from "../hooks/use-dashboard";
@@ -27,8 +28,8 @@ function DashboardSkeleton({ access }: { access: DashboardAccess }) {
         {access.users && (
           <>
             <StatCard title="Total users" icon={Users} loading />
-            <StatCard title="Active users" icon={UserCheck} loading />
-            <StatCard title="Inactive users" icon={UserX} loading />
+            <StatCard title="Active users" icon={UserCheck} loading accent="success" />
+            <StatCard title="Inactive users" icon={UserX} loading accent="destructive" />
           </>
         )}
         {access.roles && <StatCard title="Total roles" icon={Shield} loading />}
@@ -62,39 +63,33 @@ export function DashboardFeature() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Dashboard" description="System and RBAC overview." />
+      <PageHeader
+        title="Dashboard"
+        description="System overview and RBAC health at a glance."
+      />
 
       {!anySection ? (
-        <Card>
-          <CardHeader className="items-center text-center">
-            <span className="inline-flex size-12 items-center justify-center rounded-xl bg-muted">
-              <ShieldOff className="size-6 text-muted-foreground" aria-hidden="true" />
-            </span>
-            <CardTitle>No dashboard data available</CardTitle>
-            <CardDescription>
-              Your permissions do not include any dashboard sections. Contact an administrator if
-              you believe this is a mistake.
-            </CardDescription>
-          </CardHeader>
+        <Card className="shadow-xs">
+          <CardContent className="pt-6">
+            <EmptyState
+              icon={ShieldOff}
+              title="No dashboard data available"
+              description="Your permissions do not include any dashboard sections. Contact an administrator if you believe this is a mistake."
+            />
+          </CardContent>
         </Card>
       ) : status === "loading" ? (
         <DashboardSkeleton access={access} />
       ) : status === "error" ? (
-        <Card>
-          <CardHeader className="items-center text-center">
-            <span className="inline-flex size-12 items-center justify-center rounded-xl bg-destructive/10">
-              <AlertTriangle className="size-6 text-destructive" aria-hidden="true" />
-            </span>
-            <CardTitle>Could not load the dashboard</CardTitle>
-            <CardDescription>
-              The system overview could not be loaded. Check your connection and try again.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex justify-center">
-            <Button onClick={refetch}>
-              <RefreshCw className="size-4" aria-hidden="true" />
-              Retry
-            </Button>
+        <Card className="shadow-xs">
+          <CardContent className="pt-6">
+            <ErrorState
+              title="Could not load the dashboard"
+              message="The system overview could not be loaded. Check your connection and try again."
+              onRetry={refetch}
+              retryLabel="Retry"
+              icon={AlertTriangle}
+            />
           </CardContent>
         </Card>
       ) : data ? (

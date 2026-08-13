@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { DataPanel } from "@/components/data-panel";
 import { SearchInput } from "@/components/data-table/search-input";
 import { SelectFilter } from "@/components/data-table/select-filter";
 import { PaginationControls } from "@/components/data-table/pagination";
@@ -101,9 +101,9 @@ export function OperationsFeature() {
         )}
       </div>
 
-      <Card>
-        <CardContent className="space-y-3 p-4">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+      <DataPanel
+        toolbar={
+          <div className="table-toolbar">
             <SearchInput
               value={search}
               onChange={(value) => {
@@ -139,23 +139,8 @@ export function OperationsFeature() {
               />
             </div>
           </div>
-
-          <div className="rounded-lg border">
-            <OperationsTable
-              data={data?.items ?? []}
-              modules={moduleOptions ?? []}
-              subModules={subModuleOptions ?? []}
-              loading={loading}
-              error={error}
-              onRetry={refetch}
-              canUpdate={canUpdate}
-              canDelete={canDelete}
-              onEdit={(operation) => setDialog({ kind: "edit", operation })}
-              onToggleStatus={(operation) => void handleToggleStatus(operation)}
-              onDelete={(operation) => setDialog({ kind: "delete", operation })}
-            />
-          </div>
-
+        }
+        footer={
           <PaginationControls
             page={page}
             totalPages={data?.totalPages ?? 1}
@@ -164,8 +149,22 @@ export function OperationsFeature() {
             onPageChange={setPage}
             disabled={loading}
           />
-        </CardContent>
-      </Card>
+        }
+      >
+        <OperationsTable
+          data={data?.items ?? []}
+          modules={moduleOptions ?? []}
+          subModules={subModuleOptions ?? []}
+          loading={loading}
+          error={error}
+          onRetry={refetch}
+          canUpdate={canUpdate}
+          canDelete={canDelete}
+          onEdit={(operation) => setDialog({ kind: "edit", operation })}
+          onToggleStatus={(operation) => void handleToggleStatus(operation)}
+          onDelete={(operation) => setDialog({ kind: "delete", operation })}
+        />
+      </DataPanel>
 
       {dialog?.kind === "create" && (
         <OperationFormDialog

@@ -6,7 +6,6 @@ import {
   useContext,
   useEffect,
   useMemo,
-  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -28,12 +27,7 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [status, setStatus] = useState<AuthStatus>("loading");
-  const hydratedRef = useRef(false);
-
   useEffect(() => {
-    if (hydratedRef.current) return;
-    hydratedRef.current = true;
-
     let cancelled = false;
 
     authService

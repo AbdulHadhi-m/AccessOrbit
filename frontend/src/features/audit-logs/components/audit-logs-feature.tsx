@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { PageHeader } from "@/components/page-header";
-import { Card, CardContent } from "@/components/ui/card";
+import { DataPanel } from "@/components/data-panel";
 import { PaginationControls } from "@/components/data-table/pagination";
 import { AccessDenied } from "@/components/access-denied";
 import { PERMISSIONS } from "@/config/permissions";
@@ -68,8 +68,8 @@ export function AuditLogsFeature() {
         description="Inspect secure system audit trails, access attempts, and administrative actions."
       />
 
-      <Card>
-        <CardContent className="space-y-3 p-4">
+      <DataPanel
+        toolbar={
           <AuditLogsFilters
             search={search}
             onSearchChange={(val) => {
@@ -88,21 +88,8 @@ export function AuditLogsFeature() {
             }}
             onReset={handleResetFilters}
           />
-
-          <div className="rounded-lg border">
-            <AuditLogsTable
-              data={items}
-              total={total}
-              loading={loading}
-              error={error}
-              onRetry={refetch}
-              sort={sort}
-              order={order}
-              onSortChange={handleSortChange}
-              onInspect={(log) => setInspectLog(log)}
-            />
-          </div>
-
+        }
+        footer={
           <PaginationControls
             page={page}
             totalPages={totalPages}
@@ -111,8 +98,20 @@ export function AuditLogsFeature() {
             onPageChange={setPage}
             disabled={loading}
           />
-        </CardContent>
-      </Card>
+        }
+      >
+        <AuditLogsTable
+          data={items}
+          total={total}
+          loading={loading}
+          error={error}
+          onRetry={refetch}
+          sort={sort}
+          order={order}
+          onSortChange={handleSortChange}
+          onInspect={(log) => setInspectLog(log)}
+        />
+      </DataPanel>
 
       <AuditLogDetailModal
         open={Boolean(inspectLog)}

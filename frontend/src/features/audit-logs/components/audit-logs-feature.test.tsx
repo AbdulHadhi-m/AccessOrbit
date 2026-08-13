@@ -60,9 +60,9 @@ describe("AuditLogsFeature component", () => {
 
     render(<AuditLogsFeature />);
 
-    expect(screen.getByText("Access denied")).toBeInTheDocument();
+    expect(screen.getByText("Access restricted")).toBeInTheDocument();
     expect(
-      screen.getByText(/You do not have permission to view this page/i)
+      screen.getByText(/You do not have permission to access this resource/i)
     ).toBeInTheDocument();
   });
 

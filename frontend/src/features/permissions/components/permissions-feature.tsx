@@ -5,7 +5,7 @@ import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { DataPanel } from "@/components/data-panel";
 import { SearchInput } from "@/components/data-table/search-input";
 import { SelectFilter } from "@/components/data-table/select-filter";
 import { PaginationControls } from "@/components/data-table/pagination";
@@ -117,9 +117,9 @@ export function PermissionsFeature() {
         )}
       </PageHeader>
 
-      <Card>
-        <CardContent className="space-y-3 p-4">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+      <DataPanel
+        toolbar={
+          <div className="table-toolbar">
             <SearchInput
               value={search}
               onChange={(value) => {
@@ -168,24 +168,8 @@ export function PermissionsFeature() {
               />
             </div>
           </div>
-
-          <div className="rounded-lg border">
-            <PermissionsTable
-              data={pagePermissions}
-              modules={moduleOptions ?? []}
-              subModules={subModuleOptions ?? []}
-              operations={operationOptions ?? []}
-              loading={loading}
-              error={error}
-              onRetry={refetch}
-              canUpdate={canUpdate}
-              canDelete={canDelete}
-              onEdit={(permission) => setDialog({ kind: "edit", permission })}
-              onToggleStatus={(permission) => void handleToggleStatus(permission)}
-              onDelete={(permission) => setDialog({ kind: "delete", permission })}
-            />
-          </div>
-
+        }
+        footer={
           <PaginationControls
             page={page}
             totalPages={data?.totalPages ?? 1}
@@ -194,8 +178,23 @@ export function PermissionsFeature() {
             onPageChange={setPage}
             disabled={loading}
           />
-        </CardContent>
-      </Card>
+        }
+      >
+        <PermissionsTable
+          data={pagePermissions}
+          modules={moduleOptions ?? []}
+          subModules={subModuleOptions ?? []}
+          operations={operationOptions ?? []}
+          loading={loading}
+          error={error}
+          onRetry={refetch}
+          canUpdate={canUpdate}
+          canDelete={canDelete}
+          onEdit={(permission) => setDialog({ kind: "edit", permission })}
+          onToggleStatus={(permission) => void handleToggleStatus(permission)}
+          onDelete={(permission) => setDialog({ kind: "delete", permission })}
+        />
+      </DataPanel>
 
       {dialog?.kind === "create" && (
         <PermissionFormDialog
@@ -220,7 +219,7 @@ export function PermissionsFeature() {
             <>
               Are you sure you want to delete{" "}
               <span className="font-mono text-xs">{dialog.permission.key}</span>? Permissions
-              assigned to roles cannot be deleted â€” deactivate them instead.
+              assigned to roles cannot be deleted — deactivate them instead.
             </>
           }
           confirmLabel="Delete permission"

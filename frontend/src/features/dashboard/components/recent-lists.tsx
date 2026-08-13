@@ -39,7 +39,7 @@ function RecentList<T>({
   emptyLabel,
 }: RecentListProps<T>) {
   return (
-    <Card>
+    <Card className="shadow-xs">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Icon className="size-4 text-muted-foreground" aria-hidden="true" />

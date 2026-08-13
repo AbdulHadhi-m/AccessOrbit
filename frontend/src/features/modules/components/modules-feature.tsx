@@ -3,9 +3,8 @@
 import { useState } from "react";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
-import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { DataPanel } from "@/components/data-panel";
 import { SearchInput } from "@/components/data-table/search-input";
 import { SelectFilter } from "@/components/data-table/select-filter";
 import { PaginationControls } from "@/components/data-table/pagination";
@@ -75,21 +74,22 @@ export function ModulesFeature() {
 
   return (
     <div className="space-y-4">
-      <PageHeader
-        title="Modules"
-        description="Modules are the top level of the permission hierarchy."
-      >
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-sm text-muted-foreground">
+          Top-level permission groupings.{" "}
+          <span className="font-medium text-foreground">{data?.total ?? 0}</span> total.
+        </p>
         {canCreate && (
           <Button onClick={() => setDialog({ kind: "create" })}>
             <Plus className="size-4" aria-hidden="true" />
             Create module
           </Button>
         )}
-      </PageHeader>
+      </div>
 
-      <Card>
-        <CardContent className="space-y-3 p-4">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+      <DataPanel
+        toolbar={
+          <div className="table-toolbar">
             <SearchInput
               value={search}
               onChange={(value) => {
@@ -112,21 +112,8 @@ export function ModulesFeature() {
               ariaLabel="Filter by status"
             />
           </div>
-
-          <div className="rounded-lg border">
-            <ModulesTable
-              data={data?.items ?? []}
-              loading={loading}
-              error={error}
-              onRetry={refetch}
-              canUpdate={canUpdate}
-              canDelete={canDelete}
-              onEdit={(module) => setDialog({ kind: "edit", module })}
-              onToggleStatus={(module) => void handleToggleStatus(module)}
-              onDelete={(module) => setDialog({ kind: "delete", module })}
-            />
-          </div>
-
+        }
+        footer={
           <PaginationControls
             page={page}
             totalPages={data?.totalPages ?? 1}
@@ -135,8 +122,20 @@ export function ModulesFeature() {
             onPageChange={setPage}
             disabled={loading}
           />
-        </CardContent>
-      </Card>
+        }
+      >
+        <ModulesTable
+          data={data?.items ?? []}
+          loading={loading}
+          error={error}
+          onRetry={refetch}
+          canUpdate={canUpdate}
+          canDelete={canDelete}
+          onEdit={(module) => setDialog({ kind: "edit", module })}
+          onToggleStatus={(module) => void handleToggleStatus(module)}
+          onDelete={(module) => setDialog({ kind: "delete", module })}
+        />
+      </DataPanel>
 
       {dialog?.kind === "create" && (
         <ModuleFormDialog open onOpenChange={(open) => !open && setDialog(null)} module={null} />

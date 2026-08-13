@@ -43,7 +43,7 @@ export function RbacOverview({ modules, counts, loading }: RbacOverviewProps) {
   };
 
   return (
-    <Card>
+    <Card className="shadow-xs">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <FolderTree className="size-4 text-muted-foreground" aria-hidden="true" />
