@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -62,14 +63,16 @@ export function UserMenu() {
         <span className="hidden max-w-32 truncate text-sm font-medium md:block">{user.name}</span>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuLabel className="font-normal">
-          <div className="flex flex-col gap-0.5">
-            <span className="truncate font-medium">{user.name}</span>
-            <span className="truncate text-xs font-normal text-muted-foreground">{user.email}</span>
-          </div>
-        </DropdownMenuLabel>
+        <DropdownMenuGroup>
+          <DropdownMenuLabel className="font-normal">
+            <div className="flex flex-col gap-0.5">
+              <span className="truncate font-medium">{user.name}</span>
+              <span className="truncate text-xs font-normal text-muted-foreground">{user.email}</span>
+            </div>
+          </DropdownMenuLabel>
+        </DropdownMenuGroup>
         {user.roles.length > 0 && (
-          <>
+          <DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuLabel className="text-xs text-muted-foreground">Roles</DropdownMenuLabel>
             {user.roles.map((role) => (
@@ -78,40 +81,42 @@ export function UserMenu() {
                 {role.name}
               </DropdownMenuItem>
             ))}
-          </>
+          </DropdownMenuGroup>
         )}
-        <DropdownMenuSeparator />
-        <DropdownMenuLabel className="text-xs text-muted-foreground">Theme</DropdownMenuLabel>
-        <DropdownMenuItem onClick={() => setTheme("light")} className="cursor-pointer">
-          <Sun
-            className={cn(
-              "size-4 mr-2",
-              theme === "light" ? "text-foreground" : "text-muted-foreground"
-            )}
-            aria-hidden="true"
-          />
-          Light
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("dark")} className="cursor-pointer">
-          <Moon
-            className={cn(
-              "size-4 mr-2",
-              theme === "dark" ? "text-foreground" : "text-muted-foreground"
-            )}
-            aria-hidden="true"
-          />
-          Dark
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("system")} className="cursor-pointer">
-          <Monitor
-            className={cn(
-              "size-4 mr-2",
-              theme === "system" ? "text-foreground" : "text-muted-foreground"
-            )}
-            aria-hidden="true"
-          />
-          System
-        </DropdownMenuItem>
+        <DropdownMenuGroup>
+          <DropdownMenuSeparator />
+          <DropdownMenuLabel className="text-xs text-muted-foreground">Theme</DropdownMenuLabel>
+          <DropdownMenuItem onClick={() => setTheme("light")} className="cursor-pointer">
+            <Sun
+              className={cn(
+                "size-4 mr-2",
+                theme === "light" ? "text-foreground" : "text-muted-foreground"
+              )}
+              aria-hidden="true"
+            />
+            Light
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setTheme("dark")} className="cursor-pointer">
+            <Moon
+              className={cn(
+                "size-4 mr-2",
+                theme === "dark" ? "text-foreground" : "text-muted-foreground"
+              )}
+              aria-hidden="true"
+            />
+            Dark
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setTheme("system")} className="cursor-pointer">
+            <Monitor
+              className={cn(
+                "size-4 mr-2",
+                theme === "system" ? "text-foreground" : "text-muted-foreground"
+              )}
+              aria-hidden="true"
+            />
+            System
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem
           variant="destructive"

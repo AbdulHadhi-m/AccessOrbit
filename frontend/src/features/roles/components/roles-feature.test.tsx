@@ -1,7 +1,7 @@
-﻿import { describe, expect, it, vi, beforeEach } from "vitest";
+import { describe, expect, it, vi, beforeEach } from "vitest";
 import { render, screen, within, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { useQuery } from "@/lib/query/query-client";
+import { useQuery } from "@/stores/query-store";
 import { toast } from "sonner";
 import { useSession } from "@/hooks/use-session";
 import { rolesService } from "../service";
@@ -13,7 +13,7 @@ import {
   checkboxByAriaLabel,
 } from "@/test-utils";
 
-vi.mock("@/lib/query/query-client", () => ({
+vi.mock("@/stores/query-store", () => ({
   useQuery: vi.fn(),
   invalidate: vi.fn(),
   queryKey: (resource: string) => resource,

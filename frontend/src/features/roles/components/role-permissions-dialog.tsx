@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useMemo, useState } from "react";
 import { ChevronDown, FolderTree, Loader2 } from "lucide-react";
@@ -23,7 +23,7 @@ import { EmptyState } from "@/components/empty-state";
 import { ErrorState } from "@/components/error-state";
 import { PERMISSIONS } from "@/config/permissions";
 import { usePermission, usePermissionError } from "@/hooks/use-permission";
-import { invalidate } from "@/lib/query/query-client";
+import { invalidate } from "@/stores/query-store";
 import { cn } from "@/lib/utils";
 
 import { rolesService } from "../service";

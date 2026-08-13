@@ -24,6 +24,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { PageBreadcrumb, getRouteBreadcrumbs } from "@/components/page-breadcrumb";
 import { UserMenu } from "@/components/user-menu";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { SearchDialog } from "@/components/ui/search-dialog";
 import { PERMISSIONS } from "@/config/permissions";
 import { env } from "@/config/env";
@@ -349,6 +350,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
           </div>
           <div className="flex items-center gap-2">
             <SearchButton onClick={() => setSearchOpen(true)} />
+            <ThemeToggle />
             <UserMenu />
           </div>
         </header>

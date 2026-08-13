@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
@@ -14,7 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
-import { invalidate } from "@/lib/query/query-client";
+import { invalidate } from "@/stores/query-store";
 
 import { usePermissionError } from "@/hooks/use-permission";
 import { usersService } from "../service";

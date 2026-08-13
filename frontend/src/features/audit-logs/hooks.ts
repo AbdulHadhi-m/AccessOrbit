@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery, queryKey } from "@/lib/query/query-client";
+import { useQuery, queryKey } from "@/stores/query-store";
 import type { ListAuditLogsParams } from "@/types/audit";
 import { auditService } from "./service";
 

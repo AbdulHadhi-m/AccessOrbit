@@ -1,13 +1,13 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import type { QuerySnapshot } from "@/lib/query/query-client";
-import { useQuery } from "@/lib/query/query-client";
+import type { QuerySnapshot } from "@/stores/query-store";
+import { useQuery } from "@/stores/query-store";
 import { usePermission } from "@/hooks/use-permission";
 import { AuditLogsFeature } from "./audit-logs-feature";
 import { makeAuditLog } from "@/test-utils";
 
-vi.mock("@/lib/query/query-client", () => ({
+vi.mock("@/stores/query-store", () => ({
   useQuery: vi.fn(),
   invalidate: vi.fn(),
   queryKey: (resource: string) => resource,

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import { Plus } from "lucide-react";
@@ -13,7 +13,7 @@ import { ConfirmDialog } from "@/components/confirm-dialog";
 import { PERMISSIONS } from "@/config/permissions";
 import { usePermission, usePermissionError } from "@/hooks/use-permission";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
-import { invalidate } from "@/lib/query/query-client";
+import { invalidate } from "@/stores/query-store";
 
 import { rolesService } from "../service";
 import { useRolesList } from "../hooks";

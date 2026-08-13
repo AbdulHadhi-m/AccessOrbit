@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, type FormEvent } from "react";
 import { Loader2 } from "lucide-react";
@@ -18,7 +18,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { SelectField } from "@/components/data-table/select-field";
 import { Skeleton } from "@/components/ui/skeleton";
-import { invalidate } from "@/lib/query/query-client";
+import { invalidate } from "@/stores/query-store";
 import { toFieldErrors } from "@/lib/errors";
 import { usePermissionError } from "@/hooks/use-permission";
 import { usersService } from "../service";

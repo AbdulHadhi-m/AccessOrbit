@@ -3,7 +3,7 @@
 import { usePermission } from "@/hooks/use-permission";
 import { useSession } from "@/hooks/use-session";
 import { PERMISSIONS } from "@/config/permissions";
-import { useQuery } from "@/lib/query/query-client";
+import { useQuery } from "@/stores/query-store";
 import { dashboardService } from "../services/dashboard.service";
 import type { DashboardAccess } from "../types/dashboard";
 

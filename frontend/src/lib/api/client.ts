@@ -2,7 +2,7 @@ import { env } from "@/config/env";
 import { ApiError, isAuthTokenError } from "@/types/auth";
 import type { AuthSession } from "@/types/auth";
 import type { ApiFailure, ApiSuccess } from "@/types/api";
-import { tokenStore } from "./token-store";
+import { useAuthStore } from "@/stores/auth-store";
 
 export interface ApiRequestOptions extends RequestInit {
   retry?: boolean;
@@ -48,14 +48,14 @@ export async function refreshSession(): Promise<AuthSession | null> {
       })
       .then((session) => {
         if (session) {
-          tokenStore.set(session.accessToken);
+          useAuthStore.getState().setAccessToken(session.accessToken);
         } else {
-          tokenStore.set(null);
+          useAuthStore.getState().setAccessToken(null);
         }
         return session;
       })
       .catch(() => {
-        tokenStore.set(null);
+        useAuthStore.getState().setAccessToken(null);
         return null;
       })
       .finally(() => {
@@ -80,7 +80,7 @@ export async function apiFetch<T>(
     requestHeaders.set("Content-Type", "application/json");
   }
 
-  const token = tokenStore.get();
+  const token = useAuthStore.getState().accessToken;
   if (token) {
     requestHeaders.set("Authorization", `Bearer ${token}`);
   }
