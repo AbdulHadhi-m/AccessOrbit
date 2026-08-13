@@ -53,4 +53,8 @@ export const userRepository = {
   setStatus(id: string | Types.ObjectId, status: UserStatus) {
     return UserModel.updateOne({ _id: id }, { $set: { status } }).exec();
   },
+
+  setRoles(id: string | Types.ObjectId, roleIds: Types.ObjectId[]) {
+    return UserModel.updateOne({ _id: id }, { $set: { roleIds } }).exec();
+  },
 };

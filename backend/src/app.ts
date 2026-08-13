@@ -10,6 +10,7 @@ import { notFoundHandler } from "./shared/middleware/not-found.js";
 import { errorHandler } from "./shared/middleware/error-handler.js";
 import { healthRouter } from "./modules/health/health.routes.js";
 import { authRouter } from "./modules/auth/auth.routes.js";
+import { testRouter } from "./modules/test/test.routes.js";
 
 export const app = express();
 
@@ -34,6 +35,7 @@ app.use(express.urlencoded({ extended: true, limit: "100kb" }));
 app.use(API_PREFIX, apiLimiter);
 app.use(API_PREFIX, healthRouter);
 app.use(`${API_PREFIX}/auth`, authRouter);
+app.use(`${API_PREFIX}/test`, testRouter);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

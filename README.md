@@ -4,7 +4,7 @@
 
 New modules, sub-modules, operations, permissions, roles, and role assignments are managed as data through the application — no authorization code changes required.
 
-> **Status: Phase 3 (Authentication)** — full secure authentication is implemented: JWT access tokens (15 min), rotating httpOnly-cookie refresh tokens (7 days, hashed at rest, family revocation + reuse detection), login/logout/refresh/me, `requireAuth` middleware, timing-safe credential checks, and a seeded demo user. RBAC authorization middleware arrives next.
+> **Status: Phase 4 (Authorization)** — dynamic RBAC authorization middleware is live: `requireAuth` → `requirePermission("module.subModule.operation")` → 403 `AUTH_FORBIDDEN` on denial. Permissions resolve from the database on every request (role active + assignment enabled + permission active), so role/permission changes take effect instantly with no redeploy. No caching yet — the resolution service is isolated so Redis can be introduced behind the same API later. RBAC administration APIs and the frontend come next.
 
 ## Architecture Summary
 
@@ -104,6 +104,23 @@ npm run seed
 | `GET /api/v1/auth/me` | Current user (requires `Authorization: Bearer <accessToken>`) |
 
 Access tokens expire after 15 minutes and contain only `sub`/`type`/`jti` — permissions are never embedded and are resolved from the RBAC system per request. Refresh tokens are opaque, stored SHA-256 hashed, rotated on every refresh, revoked on logout, and guarded by reuse detection (reusing a rotated token revokes the entire session family).
+
+## Authorization
+
+Protecting an endpoint is two layers, kept fully separate:
+
+```ts
+router.get("/employees", requireAuth, requirePermission("employee.employees.view"), controller);
+```
+
+- **`requireAuth`** answers *who the user is* (identity from the JWT).
+- **`requirePermission("key")`** answers *what the user may do* — it resolves the user's active roles → enabled role-permission rows → active permissions from MongoDB **on every request**, then denies with `403 AUTH_FORBIDDEN` if the key is absent.
+
+Authorization never consults role names, and never trusts client-supplied role IDs, permission arrays, or user IDs. Because resolution is database-backed, adding/removing/disabling a permission or changing a user's role takes effect immediately — no redeploy, no token reissue. Access tokens contain no permission claims, so they stay valid for their 15-minute lifetime regardless of RBAC changes; each request re-resolves against current database state.
+
+**Caching boundary:** resolution is currently uncached by design (correctness over premature optimization). The `permissionResolutionService` API (`resolvePermissionsForUser(userId) → { permissions }`) is the single seam where a generation-stamped Redis cache can be introduced later without touching middleware or routes.
+
+Verification endpoints exist under `GET/POST/DELETE /api/v1/test/employee-{view,create,delete}` (protected by `employee.employees.*`) until real business modules are built.
 
 ## Tests
 
