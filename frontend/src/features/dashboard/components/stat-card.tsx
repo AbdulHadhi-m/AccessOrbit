@@ -15,10 +15,10 @@ interface StatCardProps {
 }
 
 const ACCENT_GRADIENTS = {
-  default: "from-[#6B38C3] via-[#7C3AED] to-[#4C1D95] text-white shadow-purple-500/20",
-  success: "from-[#6D28D9] via-[#7C3AED] to-[#4338CA] text-white shadow-purple-500/20",
-  warning: "from-[#7E22CE] via-[#6B38C3] to-[#5B21B6] text-white shadow-purple-500/20",
-  destructive: "from-[#5B21B6] via-[#6B38C3] to-[#4C1D95] text-white shadow-purple-500/20",
+  default: "from-[#6B38C3]/80 via-[#7C3AED]/75 to-[#4C1D95]/80 text-white shadow-purple-500/15 border-white/10 dark:border-white/5",
+  success: "from-[#6D28D9]/80 via-[#7C3AED]/75 to-[#4338CA]/80 text-white shadow-purple-500/15 border-white/10 dark:border-white/5",
+  warning: "from-[#7E22CE]/80 via-[#6B38C3]/75 to-[#5B21B6]/80 text-white shadow-purple-500/15 border-white/10 dark:border-white/5",
+  destructive: "from-[#5B21B6]/80 via-[#6B38C3]/75 to-[#4C1D95]/80 text-white shadow-purple-500/15 border-white/10 dark:border-white/5",
 };
 
 export function StatCard({
@@ -36,7 +36,7 @@ export function StatCard({
   return (
     <Card
       className={cn(
-        "group relative overflow-hidden rounded-2xl border-none bg-gradient-to-br p-1.5 shadow-md transition-all duration-200 hover:-translate-y-1 hover:shadow-xl hover:shadow-purple-500/30",
+        "group relative overflow-hidden rounded-2xl border bg-gradient-to-br p-1.5 shadow-md backdrop-blur-md transition-all duration-200 hover:-translate-y-1 hover:shadow-xl hover:shadow-purple-500/25",
         gradientClass
       )}
     >
@@ -44,7 +44,7 @@ export function StatCard({
       <Icon className="absolute -right-3 -bottom-3 size-24 text-white/5 transition-transform duration-300 group-hover:scale-110 pointer-events-none" />
 
       <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4 pb-2">
-        <CardTitle className="text-xs font-semibold uppercase tracking-wider text-white/80">
+        <CardTitle className="text-xs font-semibold uppercase tracking-wider text-white/85">
           {title}
         </CardTitle>
         <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-xl bg-white/20 backdrop-blur-md text-white shadow-xs transition-transform duration-200 group-hover:scale-110">
@@ -55,14 +55,14 @@ export function StatCard({
         {loading ? (
           <Skeleton className="h-8 w-20 bg-white/20 rounded-md" />
         ) : error ? (
-          <p className="text-sm text-white/70">Could not load</p>
+          <p className="text-sm text-white/80">Could not load</p>
         ) : (
           <p className="text-3xl font-extrabold tracking-tight tabular-nums text-white drop-shadow-xs">
             {value !== undefined ? formatValue(value) : "—"}
           </p>
         )}
         {description && (
-          <p className="mt-1 text-xs font-medium text-white/75 truncate">
+          <p className="mt-1 text-xs font-medium text-white/80 truncate">
             {description}
           </p>
         )}
