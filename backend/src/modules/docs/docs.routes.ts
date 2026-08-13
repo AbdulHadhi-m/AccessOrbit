@@ -322,6 +322,8 @@ const customCss = `
 const swaggerOptions = {
   customCss,
   customSiteTitle: "AccessOrbit API Documentation",
+  customfavIcon:
+    "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' width='32' height='32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%236B38C3'/%3E%3Cstop offset='100%25' stop-color='%237C3AED'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='8' fill='url(%23g)'/%3E%3Cpath d='M16 8.5c-3.5 1.2-5.5.2-5.5.2v5.8c0 4.2 2.9 6.3 6.4 7.5 3.5-1.2 6.4-3.3 6.4-7.5V8.7s-2 1-5.5-.2z' fill='rgba(255,255,255,0.18)' stroke='%23ffffff' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='m13.5 15.5 2 2 4-4' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E",
   swaggerOptions: {
     persistAuthorization: true,
     docExpansion: "list",

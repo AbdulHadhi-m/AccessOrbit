@@ -22,6 +22,13 @@ export const metadata: Metadata = {
     template: "%s | AccessOrbit",
   },
   description: "Enterprise Access Control and Management Platform with dynamic RBAC",
+  icons: {
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/icon.svg", type: "image/svg+xml" },
+    ],
+    apple: "/favicon.svg",
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
