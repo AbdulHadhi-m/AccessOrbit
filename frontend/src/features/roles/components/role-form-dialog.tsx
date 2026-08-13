@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, type FormEvent } from "react";
 import { Loader2 } from "lucide-react";
@@ -17,7 +17,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { invalidate } from "@/lib/query/query-client";
-import { toErrorMessage, toFieldErrors } from "@/lib/errors";
+import { toFieldErrors } from "@/lib/errors";
+import { usePermissionError } from "@/hooks/use-permission";
 import { rolesService } from "../service";
 import type { RoleDto } from "@/types/roles";
 
@@ -50,6 +51,10 @@ export function RoleFormDialog({ open, onOpenChange, role }: RoleFormDialogProps
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  const reportSubmitError = usePermissionError(
+    isEditing ? "Unable to update the role." : "Unable to create the role."
+  );
 
   const updateField = (field: keyof FormValues, value: string) => {
     setValues((current) => ({ ...current, [field]: value }));
@@ -95,7 +100,7 @@ export function RoleFormDialog({ open, onOpenChange, role }: RoleFormDialogProps
         setFieldErrors(fieldErrorsMap);
       } else {
         setSubmitError(
-          toErrorMessage(error, isEditing ? "Unable to update the role." : "Unable to create the role.")
+          reportSubmitError(error)
         );
       }
     } finally {

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, type FormEvent } from "react";
 import { Loader2 } from "lucide-react";
@@ -17,7 +17,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SelectField } from "@/components/data-table/select-field";
 import { invalidate } from "@/lib/query/query-client";
-import { toErrorMessage, toFieldErrors } from "@/lib/errors";
+import { toFieldErrors } from "@/lib/errors";
+import { usePermissionError } from "@/hooks/use-permission";
 import { modulesService } from "../service";
 import type { ModuleDto } from "@/types/rbac";
 
@@ -54,6 +55,9 @@ export function ModuleFormDialog({ open, onOpenChange, module }: ModuleFormDialo
   const [active, setActive] = useState(module?.active ?? true);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const reportUpdateError = usePermissionError("Unable to update the module.");
+  const reportCreateError = usePermissionError("Unable to create the module.");
   const [submitting, setSubmitting] = useState(false);
 
   const updateField = (field: keyof FormValues, value: string) => {
@@ -83,7 +87,7 @@ export function ModuleFormDialog({ open, onOpenChange, module }: ModuleFormDialo
         if (fieldErrorsMap) {
           setFieldErrors(fieldErrorsMap);
         } else {
-          setSubmitError(toErrorMessage(error, "Unable to update the module."));
+          setSubmitError(reportUpdateError(error));
         }
       } finally {
         setSubmitting(false);
@@ -118,7 +122,7 @@ export function ModuleFormDialog({ open, onOpenChange, module }: ModuleFormDialo
       if (fieldErrorsMap) {
         setFieldErrors(fieldErrorsMap);
       } else {
-        setSubmitError(toErrorMessage(error, "Unable to create the module."));
+        setSubmitError(reportCreateError(error));
       }
     } finally {
       setSubmitting(false);

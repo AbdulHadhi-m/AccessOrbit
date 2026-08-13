@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, type FormEvent } from "react";
 import { Loader2 } from "lucide-react";
@@ -19,7 +19,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { SelectField } from "@/components/data-table/select-field";
 import { Skeleton } from "@/components/ui/skeleton";
 import { invalidate } from "@/lib/query/query-client";
-import { toErrorMessage, toFieldErrors } from "@/lib/errors";
+import { toFieldErrors } from "@/lib/errors";
+import { usePermissionError } from "@/hooks/use-permission";
 import { usersService } from "../service";
 import { useRoleOptions } from "@/features/roles/hooks";
 import type { UserStatus } from "@/types/auth";
@@ -53,6 +54,9 @@ export function UserFormDialog({ open, onOpenChange, user }: UserFormDialogProps
   const [roleIds, setRoleIds] = useState<string[]>(user?.roles.map((role) => role.id) ?? []);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const reportUpdateError = usePermissionError("Unable to update the user.");
+  const reportCreateError = usePermissionError("Unable to create the user.");
   const [submitting, setSubmitting] = useState(false);
 
   const updateField = (field: keyof FormValues, value: string) => {
@@ -94,7 +98,7 @@ export function UserFormDialog({ open, onOpenChange, user }: UserFormDialogProps
         if (fieldErrorsMap) {
           setFieldErrors(fieldErrorsMap);
         } else {
-          setSubmitError(toErrorMessage(error, "Unable to update the user."));
+          setSubmitError(reportUpdateError(error));
         }
       } finally {
         setSubmitting(false);
@@ -129,7 +133,7 @@ export function UserFormDialog({ open, onOpenChange, user }: UserFormDialogProps
       if (fieldErrorsMap) {
         setFieldErrors(fieldErrorsMap);
       } else {
-        setSubmitError(toErrorMessage(error, "Unable to create the user."));
+        setSubmitError(reportCreateError(error));
       }
     } finally {
       setSubmitting(false);

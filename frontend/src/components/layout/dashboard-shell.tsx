@@ -21,6 +21,7 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PERMISSIONS } from "@/config/permissions";
 import { env } from "@/config/env";
+import { usePermission } from "@/hooks/use-permission";
 import { useSession } from "@/hooks/use-session";
 
 const navItems = [
@@ -69,12 +70,12 @@ function BrandMark() {
 
 function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
-  const { can } = useSession();
+  const { hasPermission } = usePermission();
 
   return (
     <nav aria-label="Main navigation" className="mt-6 space-y-1">
       {navItems.map((item) => {
-        if (item.permission && !can(item.permission)) {
+        if (item.permission && !hasPermission(item.permission)) {
           return null;
         }
         const Icon = item.icon;

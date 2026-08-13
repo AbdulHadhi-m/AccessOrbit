@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useMemo, useState } from "react";
 import { Plus } from "lucide-react";
@@ -11,10 +11,10 @@ import { SelectFilter } from "@/components/data-table/select-filter";
 import { PaginationControls } from "@/components/data-table/pagination";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { PERMISSIONS } from "@/config/permissions";
-import { useSession } from "@/hooks/use-session";
+import { usePermission, usePermissionError } from "@/hooks/use-permission";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { invalidate } from "@/lib/query/query-client";
-import { toErrorMessage } from "@/lib/errors";
+
 import { usersService } from "../service";
 import { useUsersList } from "../hooks";
 import { useRoleOptions } from "@/features/roles/hooks";
@@ -35,11 +35,14 @@ type DialogState =
 const PAGE_SIZE = 20;
 
 export function UsersFeature() {
-  const { can } = useSession();
-  const canCreate = can(PERMISSIONS.users.create);
-  const canUpdate = can(PERMISSIONS.users.update);
-  const canDelete = can(PERMISSIONS.users.delete);
-  const canAssignRoles = can(PERMISSIONS.users.assignRoles);
+  const { hasPermission } = usePermission();
+  const canCreate = hasPermission(PERMISSIONS.users.create);
+  const canUpdate = hasPermission(PERMISSIONS.users.update);
+  const canDelete = hasPermission(PERMISSIONS.users.delete);
+  const canAssignRoles = hasPermission(PERMISSIONS.users.assignRoles);
+
+  const reportStatusError = usePermissionError("Unable to update the user's status.");
+  const reportDeleteError = usePermissionError("Unable to delete the user.");
 
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebouncedValue(search);
@@ -83,7 +86,7 @@ export function UsersFeature() {
       toast.success(nextStatus === "active" ? "User activated" : "User suspended");
       invalidate("users");
     } catch (error) {
-      toast.error(toErrorMessage(error, "Unable to update the user's status."));
+      toast.error(reportStatusError(error));
     }
   };
 
@@ -93,7 +96,7 @@ export function UsersFeature() {
       toast.success("User deleted");
       invalidate("users");
     } catch (error) {
-      toast.error(toErrorMessage(error, "Unable to delete the user."));
+      toast.error(reportDeleteError(error));
     }
   };
 

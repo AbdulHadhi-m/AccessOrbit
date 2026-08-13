@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { Plus } from "lucide-react";
@@ -11,10 +11,10 @@ import { SelectFilter } from "@/components/data-table/select-filter";
 import { PaginationControls } from "@/components/data-table/pagination";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { PERMISSIONS } from "@/config/permissions";
-import { useSession } from "@/hooks/use-session";
+import { usePermission, usePermissionError } from "@/hooks/use-permission";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { invalidate } from "@/lib/query/query-client";
-import { toErrorMessage } from "@/lib/errors";
+
 import { rolesService } from "../service";
 import { useRolesList } from "../hooks";
 import { RolesTable } from "./roles-table";
@@ -32,11 +32,14 @@ type DialogState =
 const PAGE_SIZE = 20;
 
 export function RolesFeature() {
-  const { can } = useSession();
-  const canCreate = can(PERMISSIONS.roles.create);
-  const canUpdate = can(PERMISSIONS.roles.update);
-  const canDelete = can(PERMISSIONS.roles.delete);
-  const canManagePermissions = can(PERMISSIONS.rolePermissions.view);
+  const { hasPermission } = usePermission();
+  const canCreate = hasPermission(PERMISSIONS.roles.create);
+  const canUpdate = hasPermission(PERMISSIONS.roles.update);
+  const canDelete = hasPermission(PERMISSIONS.roles.delete);
+  const canManagePermissions = hasPermission(PERMISSIONS.rolePermissions.view);
+
+  const reportStatusError = usePermissionError("Unable to update the role's status.");
+  const reportDeleteError = usePermissionError("Unable to delete the role.");
 
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebouncedValue(search);
@@ -70,7 +73,7 @@ export function RolesFeature() {
       toast.success(nextActive ? "Role activated" : "Role deactivated");
       invalidate("roles");
     } catch (error) {
-      toast.error(toErrorMessage(error, "Unable to update the role's status."));
+      toast.error(reportStatusError(error));
     }
   };
 
@@ -80,7 +83,7 @@ export function RolesFeature() {
       toast.success("Role deleted");
       invalidate("roles");
     } catch (error) {
-      toast.error(toErrorMessage(error, "Unable to delete the role."));
+      toast.error(reportDeleteError(error));
     }
   };
 
@@ -180,7 +183,7 @@ export function RolesFeature() {
             <>
               Are you sure you want to delete the role{" "}
               <span className="font-medium">{dialog.role.name}</span>? Roles assigned to users
-              cannot be deleted — deactivate them instead.
+              cannot be deleted â€” deactivate them instead.
             </>
           }
           confirmLabel="Delete role"

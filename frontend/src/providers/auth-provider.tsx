@@ -19,6 +19,7 @@ interface AuthContextValue {
   status: AuthStatus;
   login: (email: string, password: string) => Promise<User>;
   logout: () => Promise<void>;
+  refresh: () => Promise<User>;
   can: (permission: string) => boolean;
 }
 
@@ -84,13 +85,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const refresh = useCallback(async () => {
+    const { user: currentUser } = await authService.me();
+    setUser(currentUser);
+    setStatus("authenticated");
+    return currentUser;
+  }, []);
+
   const can = useCallback((permission: string) => {
     return user?.permissions.includes(permission) ?? false;
   }, [user]);
 
   const value = useMemo(
-    () => ({ user, status, login, logout, can }),
-    [user, status, login, logout, can]
+    () => ({ user, status, login, logout, refresh, can }),
+    [user, status, login, logout, refresh, can]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

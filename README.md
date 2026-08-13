@@ -125,7 +125,7 @@ Access tokens live only in memory (15-minute lifetime, refreshed transparently),
 
 ## Frontend (Phase 7) — RBAC administration
 
-The backend session now includes the user's effective permission codes (`SafeUser.permissions`), so the UI can gate itself client-side with `can("rbac.users.view")` — strictly permission-based, never role-name checks. Navigation is filtered to the sections the current user may access, and any route lacking its permission renders the `/access-denied` page.
+The backend session now includes the user's effective permission codes (`SafeUser.permissions`), so the UI can gate itself client-side — strictly permission-based, never role-name checks. Authorization is centralized in `hooks/use-permission.ts`: `usePermission()` exposes `hasPermission`/`hasAnyPermission`/`hasAllPermissions` (flexible string keys, so newly created backend permissions like `inventory.view` work without code changes), and `usePermissionError()` maps backend 403s to a friendly message while refreshing the session so revoked permissions self-correct. `PermissionGuard` renders children only when the required permission (or `anyOf`/`allOf`) is granted, with a configurable `fallback` (default: the Access Denied screen). Navigation is filtered to the sections the current user may access, and any route lacking its permission renders the `/access-denied` page — login is only for unauthenticated users.
 
 Screens (all under the `/admin` route group, all static, all data-driven):
 
@@ -135,9 +135,9 @@ Screens (all under the `/admin` route group, all static, all data-driven):
 - **`/admin/modules`** (`rbac.modules.*`, `rbac.sub-modules.*`, `rbac.operations.*`) — three linked tabs: modules, their sub-modules, and operations, with full CRUD on each and module-context filtering.
 - **`/admin/permissions`** (`rbac.permissions.*`) — permissions filtered by module, keyed to the operation that owns them; create/edit/activate/delete. Keys must match the shared slug pattern (e.g. `purchase-orders.view`) — underscores are rejected by both client and server.
 
-Shared building blocks: `lib/query/query-client.ts` (a lightweight `useQuery` with cached refetch + invalidation), `can()` from `hooks/use-session.ts`, typed services per feature, form dialogs with inline Zod validation, confirm dialogs, toast notifications, and skeleton/empty/error states on every list.
+Shared building blocks: `lib/query/query-client.ts` (a lightweight `useQuery` with cached refetch + invalidation), the permission layer (see Authorization below), typed services per feature, form dialogs with inline Zod validation, confirm dialogs, toast notifications, and skeleton/empty/error states on every list. If the backend rejects a call the UI believed was allowed (permission revoked mid-session), the request surfaces a friendly permission error and the session is re-fetched — the backend remains the final security authority.
 
-Feature tests (Vitest + Testing Library) cover users, roles, permissions, and authorization (`PermissionGate` + admin shell navigation); run with `npm test -w frontend`.
+Feature tests (Vitest + Testing Library) cover users, roles, permissions, and authorization (`PermissionGuard`, `usePermission`, 403 handling, and admin shell navigation); run with `npm test -w frontend`.
 
 ## Authorization
 

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useMemo, useState } from "react";
 import { Plus } from "lucide-react";
@@ -10,10 +10,10 @@ import { SelectFilter } from "@/components/data-table/select-filter";
 import { PaginationControls } from "@/components/data-table/pagination";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { PERMISSIONS } from "@/config/permissions";
-import { useSession } from "@/hooks/use-session";
+import { usePermission, usePermissionError } from "@/hooks/use-permission";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { invalidate } from "@/lib/query/query-client";
-import { toErrorMessage } from "@/lib/errors";
+
 import { operationsService } from "../service";
 import { useOperationsList } from "../hooks";
 import { useModuleOptions } from "@/features/modules/hooks";
@@ -31,10 +31,13 @@ type DialogState =
 const PAGE_SIZE = 20;
 
 export function OperationsFeature() {
-  const { can } = useSession();
-  const canCreate = can(PERMISSIONS.operations.create);
-  const canUpdate = can(PERMISSIONS.operations.update);
-  const canDelete = can(PERMISSIONS.operations.delete);
+  const { hasPermission } = usePermission();
+  const canCreate = hasPermission(PERMISSIONS.operations.create);
+  const canUpdate = hasPermission(PERMISSIONS.operations.update);
+  const canDelete = hasPermission(PERMISSIONS.operations.delete);
+
+  const reportStatusError = usePermissionError("Unable to update the operation's status.");
+  const reportDeleteError = usePermissionError("Unable to delete the operation.");
 
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebouncedValue(search);
@@ -69,7 +72,7 @@ export function OperationsFeature() {
       toast.success(operation.active ? "Operation deactivated" : "Operation activated");
       invalidate("operations", "modules:hierarchy");
     } catch (error) {
-      toast.error(toErrorMessage(error, "Unable to update the operation's status."));
+      toast.error(reportStatusError(error));
     }
   };
 
@@ -79,7 +82,7 @@ export function OperationsFeature() {
       toast.success("Operation deleted");
       invalidate("operations", "modules:hierarchy");
     } catch (error) {
-      toast.error(toErrorMessage(error, "Unable to delete the operation."));
+      toast.error(reportDeleteError(error));
     }
   };
 

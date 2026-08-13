@@ -1,5 +1,5 @@
-import type { Metadata } from "next";
-import { PermissionGate } from "@/components/permission-gate";
+﻿import type { Metadata } from "next";
+import { PermissionGuard } from "@/components/permission-guard";
 import { PERMISSIONS } from "@/config/permissions";
 import { RolesFeature } from "@/features/roles/components/roles-feature";
 
@@ -9,8 +9,8 @@ export const metadata: Metadata = {
 
 export default function RolesPage() {
   return (
-    <PermissionGate permission={PERMISSIONS.roles.view}>
+    <PermissionGuard permission={PERMISSIONS.roles.view}>
       <RolesFeature />
-    </PermissionGate>
+    </PermissionGuard>
   );
 }

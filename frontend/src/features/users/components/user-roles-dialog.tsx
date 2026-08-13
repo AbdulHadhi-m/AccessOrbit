@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
@@ -15,7 +15,8 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { invalidate } from "@/lib/query/query-client";
-import { toErrorMessage } from "@/lib/errors";
+
+import { usePermissionError } from "@/hooks/use-permission";
 import { usersService } from "../service";
 import { useRoleOptions } from "@/features/roles/hooks";
 import type { UserDto } from "@/types/users";
@@ -30,6 +31,8 @@ export function UserRolesDialog({ open, onOpenChange, user }: UserRolesDialogPro
   const { data: roleOptions, status: rolesStatus } = useRoleOptions();
   const [selected, setSelected] = useState<string[]>(user.roles.map((role) => role.id));
   const [error, setError] = useState<string | null>(null);
+
+  const reportUpdateError = usePermissionError("Unable to update roles.");
   const [saving, setSaving] = useState(false);
 
   const toggleRole = (roleId: string) => {
@@ -51,7 +54,7 @@ export function UserRolesDialog({ open, onOpenChange, user }: UserRolesDialogPro
       invalidate("users");
       onOpenChange(false);
     } catch (error) {
-      setError(toErrorMessage(error, "Unable to update roles."));
+      setError(reportUpdateError(error));
     } finally {
       setSaving(false);
     }

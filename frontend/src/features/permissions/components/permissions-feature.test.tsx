@@ -1,4 +1,4 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+﻿import { describe, expect, it, vi, beforeEach } from "vitest";
 import { render, screen, within, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useQuery } from "@/lib/query/query-client";
@@ -55,6 +55,7 @@ beforeEach(() => {
     status: "authenticated",
     login: vi.fn(),
     logout: vi.fn(),
+    refresh: vi.fn(),
     can: canMock,
   });
 });

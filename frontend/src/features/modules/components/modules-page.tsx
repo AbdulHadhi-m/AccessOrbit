@@ -1,8 +1,8 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { PermissionGate } from "@/components/permission-gate";
+import { PermissionGuard } from "@/components/permission-guard";
 import { PERMISSIONS } from "@/config/permissions";
 import { ModulesFeature } from "@/features/modules/components/modules-feature";
 import { SubModulesFeature } from "@/features/sub-modules/components/sub-modules-feature";
@@ -19,19 +19,19 @@ export function ModulesPageFeature() {
         <TabsTrigger value="operations">Operations</TabsTrigger>
       </TabsList>
       <TabsContent value="modules" className="pt-4">
-        <PermissionGate permission={PERMISSIONS.modules.view}>
+        <PermissionGuard permission={PERMISSIONS.modules.view}>
           <ModulesFeature />
-        </PermissionGate>
+        </PermissionGuard>
       </TabsContent>
       <TabsContent value="sub-modules" className="pt-4">
-        <PermissionGate permission={PERMISSIONS.subModules.view}>
+        <PermissionGuard permission={PERMISSIONS.subModules.view}>
           <SubModulesFeature />
-        </PermissionGate>
+        </PermissionGuard>
       </TabsContent>
       <TabsContent value="operations" className="pt-4">
-        <PermissionGate permission={PERMISSIONS.operations.view}>
+        <PermissionGuard permission={PERMISSIONS.operations.view}>
           <OperationsFeature />
-        </PermissionGate>
+        </PermissionGuard>
       </TabsContent>
     </Tabs>
   );

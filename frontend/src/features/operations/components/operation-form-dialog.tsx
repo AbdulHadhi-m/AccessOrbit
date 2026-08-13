@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useMemo, useState, type FormEvent } from "react";
 import { Loader2 } from "lucide-react";
@@ -17,7 +17,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SelectField } from "@/components/data-table/select-field";
 import { invalidate } from "@/lib/query/query-client";
-import { toErrorMessage, toFieldErrors } from "@/lib/errors";
+import { toFieldErrors } from "@/lib/errors";
+import { usePermissionError } from "@/hooks/use-permission";
 import { operationsService } from "../service";
 import { useModuleOptions } from "@/features/modules/hooks";
 import { useSubModuleOptions } from "@/features/sub-modules/hooks";
@@ -58,6 +59,9 @@ export function OperationFormDialog({ open, onOpenChange, operation }: Operation
   const [active, setActive] = useState(operation?.active ?? true);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const reportUpdateError = usePermissionError("Unable to update the operation.");
+  const reportCreateError = usePermissionError("Unable to create the operation.");
   const [submitting, setSubmitting] = useState(false);
 
   const moduleSubModules = useMemo(
@@ -101,7 +105,7 @@ export function OperationFormDialog({ open, onOpenChange, operation }: Operation
         if (fieldErrorsMap) {
           setFieldErrors(fieldErrorsMap);
         } else {
-          setSubmitError(toErrorMessage(error, "Unable to update the operation."));
+          setSubmitError(reportUpdateError(error));
         }
       } finally {
         setSubmitting(false);
@@ -141,7 +145,7 @@ export function OperationFormDialog({ open, onOpenChange, operation }: Operation
       if (fieldErrorsMap) {
         setFieldErrors(fieldErrorsMap);
       } else {
-        setSubmitError(toErrorMessage(error, "Unable to create the operation."));
+        setSubmitError(reportCreateError(error));
       }
     } finally {
       setSubmitting(false);

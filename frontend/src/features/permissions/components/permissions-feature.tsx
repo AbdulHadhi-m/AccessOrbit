@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useMemo, useState } from "react";
 import { Plus } from "lucide-react";
@@ -11,10 +11,10 @@ import { SelectFilter } from "@/components/data-table/select-filter";
 import { PaginationControls } from "@/components/data-table/pagination";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { PERMISSIONS } from "@/config/permissions";
-import { useSession } from "@/hooks/use-session";
+import { usePermission, usePermissionError } from "@/hooks/use-permission";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { invalidate } from "@/lib/query/query-client";
-import { toErrorMessage } from "@/lib/errors";
+
 import { permissionsService } from "../service";
 import { usePermissionsList } from "../hooks";
 import { useModuleOptions } from "@/features/modules/hooks";
@@ -33,10 +33,13 @@ type DialogState =
 const PAGE_SIZE = 20;
 
 export function PermissionsFeature() {
-  const { can } = useSession();
-  const canCreate = can(PERMISSIONS.permissions.create);
-  const canUpdate = can(PERMISSIONS.permissions.update);
-  const canDelete = can(PERMISSIONS.permissions.delete);
+  const { hasPermission } = usePermission();
+  const canCreate = hasPermission(PERMISSIONS.permissions.create);
+  const canUpdate = hasPermission(PERMISSIONS.permissions.update);
+  const canDelete = hasPermission(PERMISSIONS.permissions.delete);
+
+  const reportStatusError = usePermissionError("Unable to update the permission's status.");
+  const reportDeleteError = usePermissionError("Unable to delete the permission.");
 
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebouncedValue(search);
@@ -86,7 +89,7 @@ export function PermissionsFeature() {
       toast.success(permission.active ? "Permission deactivated" : "Permission activated");
       invalidate("permissions", "roles", "modules:hierarchy");
     } catch (error) {
-      toast.error(toErrorMessage(error, "Unable to update the permission's status."));
+      toast.error(reportStatusError(error));
     }
   };
 
@@ -96,7 +99,7 @@ export function PermissionsFeature() {
       toast.success("Permission deleted");
       invalidate("permissions", "roles", "modules:hierarchy");
     } catch (error) {
-      toast.error(toErrorMessage(error, "Unable to delete the permission."));
+      toast.error(reportDeleteError(error));
     }
   };
 
@@ -217,7 +220,7 @@ export function PermissionsFeature() {
             <>
               Are you sure you want to delete{" "}
               <span className="font-mono text-xs">{dialog.permission.key}</span>? Permissions
-              assigned to roles cannot be deleted — deactivate them instead.
+              assigned to roles cannot be deleted â€” deactivate them instead.
             </>
           }
           confirmLabel="Delete permission"

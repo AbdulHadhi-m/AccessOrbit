@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { Plus } from "lucide-react";
@@ -11,10 +11,10 @@ import { SelectFilter } from "@/components/data-table/select-filter";
 import { PaginationControls } from "@/components/data-table/pagination";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { PERMISSIONS } from "@/config/permissions";
-import { useSession } from "@/hooks/use-session";
+import { usePermission, usePermissionError } from "@/hooks/use-permission";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { invalidate } from "@/lib/query/query-client";
-import { toErrorMessage } from "@/lib/errors";
+
 import { modulesService } from "../service";
 import { useModulesList } from "../hooks";
 import { ModulesTable } from "./modules-table";
@@ -30,10 +30,13 @@ type DialogState =
 const PAGE_SIZE = 20;
 
 export function ModulesFeature() {
-  const { can } = useSession();
-  const canCreate = can(PERMISSIONS.modules.create);
-  const canUpdate = can(PERMISSIONS.modules.update);
-  const canDelete = can(PERMISSIONS.modules.delete);
+  const { hasPermission } = usePermission();
+  const canCreate = hasPermission(PERMISSIONS.modules.create);
+  const canUpdate = hasPermission(PERMISSIONS.modules.update);
+  const canDelete = hasPermission(PERMISSIONS.modules.delete);
+
+  const reportStatusError = usePermissionError("Unable to update the module's status.");
+  const reportDeleteError = usePermissionError("Unable to delete the module.");
 
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebouncedValue(search);
@@ -56,7 +59,7 @@ export function ModulesFeature() {
       toast.success(module.active ? "Module deactivated" : "Module activated");
       invalidate("modules", "modules:hierarchy");
     } catch (error) {
-      toast.error(toErrorMessage(error, "Unable to update the module's status."));
+      toast.error(reportStatusError(error));
     }
   };
 
@@ -66,7 +69,7 @@ export function ModulesFeature() {
       toast.success("Module deleted");
       invalidate("modules", "modules:hierarchy");
     } catch (error) {
-      toast.error(toErrorMessage(error, "Unable to delete the module."));
+      toast.error(reportDeleteError(error));
     }
   };
 

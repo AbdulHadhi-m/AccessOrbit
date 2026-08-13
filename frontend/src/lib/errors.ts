@@ -44,6 +44,10 @@ export function toApiError(error: unknown): ApiError | null {
   return error instanceof ApiError ? error : null;
 }
 
+export function isForbidden(error: unknown): boolean {
+  return error instanceof ApiError && error.status === 403;
+}
+
 export function toRequestId(error: unknown): string | undefined {
   return toApiError(error)?.requestId;
 }

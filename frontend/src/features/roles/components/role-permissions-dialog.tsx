@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useMemo, useState } from "react";
 import { Loader2 } from "lucide-react";
@@ -16,9 +16,9 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SearchInput } from "@/components/data-table/search-input";
 import { PERMISSIONS } from "@/config/permissions";
-import { useSession } from "@/hooks/use-session";
+import { usePermission, usePermissionError } from "@/hooks/use-permission";
 import { invalidate } from "@/lib/query/query-client";
-import { toErrorMessage } from "@/lib/errors";
+
 import { rolesService } from "../service";
 import { useRolePermissions, useModuleHierarchy } from "../hooks";
 import type { RoleDto } from "@/types/roles";
@@ -31,9 +31,9 @@ interface RolePermissionsDialogProps {
 }
 
 export function RolePermissionsDialog({ open, onOpenChange, role }: RolePermissionsDialogProps) {
-  const { can } = useSession();
-  const canAssign = can(PERMISSIONS.rolePermissions.assign);
-  const canRemove = can(PERMISSIONS.rolePermissions.remove);
+  const { hasPermission } = usePermission();
+  const canAssign = hasPermission(PERMISSIONS.rolePermissions.assign);
+  const canRemove = hasPermission(PERMISSIONS.rolePermissions.remove);
 
   const {
     data: hierarchy,
@@ -44,6 +44,8 @@ export function RolePermissionsDialog({ open, onOpenChange, role }: RolePermissi
     data: assigned,
     status: assignedStatus,
   } = useRolePermissions(role.id);
+
+  const reportAssignmentError = usePermissionError("Unable to update the permission assignment.");
 
   const [filter, setFilter] = useState("");
   const [pending, setPending] = useState<Set<string>>(new Set());
@@ -84,7 +86,7 @@ export function RolePermissionsDialog({ open, onOpenChange, role }: RolePermissi
       }
       invalidate(`role-permissions:${role.id}`, "roles");
     } catch (error) {
-      toast.error(toErrorMessage(error, "Unable to update the permission assignment."));
+      toast.error(reportAssignmentError(error));
     } finally {
       setPending((current) => {
         const next = new Set(current);
@@ -178,7 +180,7 @@ export function RolePermissionsDialog({ open, onOpenChange, role }: RolePermissi
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-3xl">
         <DialogHeader>
-          <DialogTitle>Permissions — {role.name}</DialogTitle>
+          <DialogTitle>Permissions â€” {role.name}</DialogTitle>
           <DialogDescription>
             Assign or remove permissions for this role. Changes take effect immediately.
           </DialogDescription>

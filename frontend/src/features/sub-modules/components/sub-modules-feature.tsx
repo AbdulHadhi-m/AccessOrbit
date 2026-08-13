@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { Plus } from "lucide-react";
@@ -10,10 +10,10 @@ import { SelectFilter } from "@/components/data-table/select-filter";
 import { PaginationControls } from "@/components/data-table/pagination";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { PERMISSIONS } from "@/config/permissions";
-import { useSession } from "@/hooks/use-session";
+import { usePermission, usePermissionError } from "@/hooks/use-permission";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { invalidate } from "@/lib/query/query-client";
-import { toErrorMessage } from "@/lib/errors";
+
 import { subModulesService } from "../service";
 import { useSubModulesList } from "../hooks";
 import { useModuleOptions } from "@/features/modules/hooks";
@@ -30,10 +30,13 @@ type DialogState =
 const PAGE_SIZE = 20;
 
 export function SubModulesFeature() {
-  const { can } = useSession();
-  const canCreate = can(PERMISSIONS.subModules.create);
-  const canUpdate = can(PERMISSIONS.subModules.update);
-  const canDelete = can(PERMISSIONS.subModules.delete);
+  const { hasPermission } = usePermission();
+  const canCreate = hasPermission(PERMISSIONS.subModules.create);
+  const canUpdate = hasPermission(PERMISSIONS.subModules.update);
+  const canDelete = hasPermission(PERMISSIONS.subModules.delete);
+
+  const reportStatusError = usePermissionError("Unable to update the sub-module's status.");
+  const reportDeleteError = usePermissionError("Unable to delete the sub-module.");
 
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebouncedValue(search);
@@ -57,7 +60,7 @@ export function SubModulesFeature() {
       toast.success(subModule.active ? "Sub-module deactivated" : "Sub-module activated");
       invalidate("sub-modules", "modules:hierarchy");
     } catch (error) {
-      toast.error(toErrorMessage(error, "Unable to update the sub-module's status."));
+      toast.error(reportStatusError(error));
     }
   };
 
@@ -67,7 +70,7 @@ export function SubModulesFeature() {
       toast.success("Sub-module deleted");
       invalidate("sub-modules", "modules:hierarchy");
     } catch (error) {
-      toast.error(toErrorMessage(error, "Unable to delete the sub-module."));
+      toast.error(reportDeleteError(error));
     }
   };
 

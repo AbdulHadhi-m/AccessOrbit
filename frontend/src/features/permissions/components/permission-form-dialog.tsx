@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useMemo, useState, type FormEvent } from "react";
 import { Loader2 } from "lucide-react";
@@ -17,7 +17,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SelectField } from "@/components/data-table/select-field";
 import { invalidate } from "@/lib/query/query-client";
-import { toErrorMessage, toFieldErrors } from "@/lib/errors";
+import { toFieldErrors } from "@/lib/errors";
+import { usePermissionError } from "@/hooks/use-permission";
 import { permissionsService } from "../service";
 import { useModuleOptions } from "@/features/modules/hooks";
 import { useSubModuleOptions } from "@/features/sub-modules/hooks";
@@ -66,6 +67,9 @@ export function PermissionFormDialog({ open, onOpenChange, permission }: Permiss
   const [active, setActive] = useState(permission?.active ?? true);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const reportUpdateError = usePermissionError("Unable to update the permission.");
+  const reportCreateError = usePermissionError("Unable to create the permission.");
   const [submitting, setSubmitting] = useState(false);
 
   const selectedOperation = useMemo(
@@ -136,7 +140,7 @@ export function PermissionFormDialog({ open, onOpenChange, permission }: Permiss
         if (fieldErrorsMap) {
           setFieldErrors(fieldErrorsMap);
         } else {
-          setSubmitError(toErrorMessage(error, "Unable to update the permission."));
+          setSubmitError(reportUpdateError(error));
         }
       } finally {
         setSubmitting(false);
@@ -180,7 +184,7 @@ export function PermissionFormDialog({ open, onOpenChange, permission }: Permiss
       if (fieldErrorsMap) {
         setFieldErrors(fieldErrorsMap);
       } else {
-        setSubmitError(toErrorMessage(error, "Unable to create the permission."));
+        setSubmitError(reportCreateError(error));
       }
     } finally {
       setSubmitting(false);

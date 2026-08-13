@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, type FormEvent } from "react";
 import { Loader2 } from "lucide-react";
@@ -17,7 +17,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SelectField } from "@/components/data-table/select-field";
 import { invalidate } from "@/lib/query/query-client";
-import { toErrorMessage, toFieldErrors } from "@/lib/errors";
+import { toFieldErrors } from "@/lib/errors";
+import { usePermissionError } from "@/hooks/use-permission";
 import { subModulesService } from "../service";
 import { useModuleOptions } from "@/features/modules/hooks";
 import type { SubModuleDto } from "@/types/rbac";
@@ -55,6 +56,9 @@ export function SubModuleFormDialog({ open, onOpenChange, subModule }: SubModule
   const [active, setActive] = useState(subModule?.active ?? true);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const reportUpdateError = usePermissionError("Unable to update the sub-module.");
+  const reportCreateError = usePermissionError("Unable to create the sub-module.");
   const [submitting, setSubmitting] = useState(false);
 
   const updateField = (field: keyof FormValues, value: string) => {
@@ -83,7 +87,7 @@ export function SubModuleFormDialog({ open, onOpenChange, subModule }: SubModule
         if (fieldErrorsMap) {
           setFieldErrors(fieldErrorsMap);
         } else {
-          setSubmitError(toErrorMessage(error, "Unable to update the sub-module."));
+          setSubmitError(reportUpdateError(error));
         }
       } finally {
         setSubmitting(false);
@@ -122,7 +126,7 @@ export function SubModuleFormDialog({ open, onOpenChange, subModule }: SubModule
       if (fieldErrorsMap) {
         setFieldErrors(fieldErrorsMap);
       } else {
-        setSubmitError(toErrorMessage(error, "Unable to create the sub-module."));
+        setSubmitError(reportCreateError(error));
       }
     } finally {
       setSubmitting(false);
