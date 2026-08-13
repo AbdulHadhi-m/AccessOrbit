@@ -122,6 +122,28 @@ Authorization never consults role names, and never trusts client-supplied role I
 
 Verification endpoints exist under `GET/POST/DELETE /api/v1/test/employee-{view,create,delete}` (protected by `employee.employees.*`) until real business modules are built.
 
+## Admin API (RBAC management)
+
+All admin endpoints are protected by `requireAuth` + a dynamic permission (`rbac.*`) — never by role name. Slugs and permission keys are derived server-side (e.g. role `slug` from `name`); keys are immutable once created because they are embedded in permission-key strings.
+
+| Group | Endpoints | Permission required |
+|---|---|---|
+| Users | `GET/POST /api/v1/users`, `GET/PATCH/DELETE /api/v1/users/:id`, `POST /api/v1/users/:id/roles` | `rbac.users.{view,create,update,delete,assign-roles}` |
+| Roles | `GET/POST /api/v1/roles`, `GET/PATCH/DELETE /api/v1/roles/:id` | `rbac.roles.{view,create,update,delete}` |
+| Role permissions | `GET /api/v1/roles/:id/permissions`, `POST /api/v1/roles/:id/permissions`, `DELETE /api/v1/roles/:id/permissions/:permissionId` | `rbac.role-permissions.{view,assign,remove}` |
+| Modules | `GET/POST /api/v1/modules`, `GET/PATCH/DELETE /api/v1/modules/:id`, `GET /api/v1/modules/hierarchy` | `rbac.modules.*` |
+| Sub-modules | `GET/POST /api/v1/sub-modules`, `GET/PATCH/DELETE /api/v1/sub-modules/:id` | `rbac.sub-modules.*` |
+| Operations | `GET/POST /api/v1/operations`, `GET/PATCH/DELETE /api/v1/operations/:id` | `rbac.operations.*` |
+| Permissions | `GET/POST /api/v1/permissions`, `GET/PATCH/DELETE /api/v1/permissions/:id` | `rbac.permissions.*` |
+
+Behavior highlights:
+- Lists support pagination (`page`, `limit`), `search`, and `sort`/`order` (e.g. `GET /users?search=jane&status=active&sort=email&order=asc`).
+- Error codes: `404` unknown resource, `422` invalid body/relationship (e.g. operation's sub-module belongs to a different module), `409` duplicates and integrity blocks (system role, role in use, module/sub-module/operation/permission referenced by children, self-disable/self-delete).
+- Role membership and permission grants take effect immediately — no token reissue (resolution is per-request, see Authorization above).
+- No `passwordHash` or refresh tokens are ever returned.
+
+Interactive OpenAPI documentation: `GET /api/v1/docs` (Swagger UI) and raw spec at `GET /api/v1/docs/json`.
+
 ## Tests
 
 ```bash
@@ -166,6 +188,7 @@ Returns `200` with `status: "ok"` and `database: "up"` when connected, or `503` 
 - Base path: `/api/v1`
 - Consistent response envelope: `{ success, message, data, requestId }` / `{ success, error: { code, message, details }, requestId }`
 - Centralized error handling — no stack traces or internal details leak to clients.
+- Swagger UI: `http://localhost:4000/api/v1/docs` — Raw OpenAPI 3.0 spec: `http://localhost:4000/api/v1/docs/json`
 
 ## Deployment (planned)
 

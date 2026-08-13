@@ -10,7 +10,16 @@ export function validate(schema: ZodType, source: ValidationSource = "body"): Re
     const result = schema.safeParse(req[source]);
 
     if (result.success) {
-      (req as Request & Record<string, unknown>)[source] = result.data;
+      const target = req as Request & Record<string, unknown>;
+      if (source === "query") {
+        Object.defineProperty(target, "query", {
+          value: result.data,
+          configurable: true,
+          writable: true,
+        });
+      } else {
+        target[source] = result.data;
+      }
       next();
       return;
     }

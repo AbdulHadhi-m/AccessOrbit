@@ -1,11 +1,25 @@
-import { Types } from "mongoose";
-import { RoleModel } from "../../database/models/index.js";
+import { Types, type FilterQuery } from "mongoose";
+import { RoleModel, type Role } from "../../database/models/index.js";
+import { toCaseInsensitiveRegex } from "../../shared/utils/pagination.js";
 
 export interface CreateRoleInput {
   name: string;
   slug: string;
   description?: string;
   isSystem?: boolean;
+}
+
+export interface RoleListInput {
+  page: number;
+  limit: number;
+  search?: string;
+  status?: "active" | "inactive";
+  sort: Record<string, 1 | -1>;
+}
+
+export interface RoleListResult {
+  items: Array<Record<string, unknown>>;
+  total: number;
 }
 
 export const roleRepository = {
@@ -19,6 +33,31 @@ export const roleRepository = {
 
   findActiveByIds(ids: (string | Types.ObjectId)[]) {
     return RoleModel.find({ _id: { $in: ids }, active: true }).lean().exec();
+  },
+
+  findByIds(ids: (string | Types.ObjectId)[]) {
+    return RoleModel.find({ _id: { $in: ids } }).lean().exec();
+  },
+
+  async list(input: RoleListInput): Promise<RoleListResult> {
+    const filter: FilterQuery<Role> = {};
+    if (input.search) {
+      const regex = toCaseInsensitiveRegex(input.search);
+      filter.$or = [{ name: regex }, { slug: regex }, { description: regex }];
+    }
+    if (input.status) {
+      filter.active = input.status === "active";
+    }
+    const [items, total] = await Promise.all([
+      RoleModel.find(filter)
+        .sort(input.sort)
+        .skip((input.page - 1) * input.limit)
+        .limit(input.limit)
+        .lean()
+        .exec(),
+      RoleModel.countDocuments(filter).exec(),
+    ]);
+    return { items, total };
   },
 
   create(input: CreateRoleInput) {
@@ -43,5 +82,12 @@ export const roleRepository = {
 
   setActive(id: string | Types.ObjectId, active: boolean) {
     return RoleModel.updateOne({ _id: id }, { $set: { active } }).exec();
+  },
+
+  updateById(
+    id: string | Types.ObjectId,
+    patch: { name?: string; slug?: string; description?: string; active?: boolean }
+  ) {
+    return RoleModel.updateOne({ _id: id }, { $set: patch }).exec();
   },
 };

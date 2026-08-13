@@ -105,12 +105,17 @@ async function revokeRefreshToken(refreshToken: string): Promise<boolean> {
   return true;
 }
 
+async function revokeAllForUser(userId: string | Types.ObjectId): Promise<void> {
+  await RefreshTokenModel.deleteMany({ userId }).exec();
+}
+
 export const tokenService = {
   signAccessToken,
   verifyAccessToken,
   createRefreshSession,
   rotateRefreshToken,
   revokeRefreshToken,
+  revokeAllForUser,
   REFRESH_COOKIE_NAME,
   ACCESS_TOKEN_TTL_SECONDS,
   REFRESH_TOKEN_TTL_SECONDS,

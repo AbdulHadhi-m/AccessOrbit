@@ -1,5 +1,6 @@
-import { Types } from "mongoose";
-import { UserModel, type UserStatus } from "../../database/models/index.js";
+import { Types, type FilterQuery } from "mongoose";
+import { UserModel, type User, type UserStatus } from "../../database/models/index.js";
+import { toCaseInsensitiveRegex } from "../../shared/utils/pagination.js";
 
 export interface CreateUserInput {
   name: string;
@@ -9,9 +10,53 @@ export interface CreateUserInput {
   status?: UserStatus;
 }
 
+export interface UserListInput {
+  page: number;
+  limit: number;
+  search?: string;
+  status?: UserStatus;
+  sort: Record<string, 1 | -1>;
+}
+
+export interface UserListResult {
+  items: Array<Record<string, unknown>>;
+  total: number;
+}
+
+const ROLE_PROJECTION = "name slug active";
+
 export const userRepository = {
   findById(id: string | Types.ObjectId) {
     return UserModel.findById(id).lean().exec();
+  },
+
+  findByIdWithRoles(id: string | Types.ObjectId) {
+    return UserModel.findById(id)
+      .populate("roleIds", ROLE_PROJECTION)
+      .lean()
+      .exec();
+  },
+
+  async list(input: UserListInput): Promise<UserListResult> {
+    const filter: FilterQuery<User> = {};
+    if (input.search) {
+      const regex = toCaseInsensitiveRegex(input.search);
+      filter.$or = [{ name: regex }, { email: regex }];
+    }
+    if (input.status) {
+      filter.status = input.status;
+    }
+    const [items, total] = await Promise.all([
+      UserModel.find(filter)
+        .populate("roleIds", ROLE_PROJECTION)
+        .sort(input.sort)
+        .skip((input.page - 1) * input.limit)
+        .limit(input.limit)
+        .lean()
+        .exec(),
+      UserModel.countDocuments(filter).exec(),
+    ]);
+    return { items, total };
   },
 
   findByEmail(email: string) {
@@ -56,5 +101,14 @@ export const userRepository = {
 
   setRoles(id: string | Types.ObjectId, roleIds: Types.ObjectId[]) {
     return UserModel.updateOne({ _id: id }, { $set: { roleIds } }).exec();
+  },
+
+  updateById(id: string | Types.ObjectId, patch: Partial<CreateUserInput>) {
+    return UserModel.updateOne({ _id: id }, { $set: patch }).exec();
+  },
+
+  async deleteById(id: string | Types.ObjectId) {
+    const result = await UserModel.deleteOne({ _id: id }).exec();
+    return result.deletedCount === 1;
   },
 };

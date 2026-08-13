@@ -11,6 +11,13 @@ import { errorHandler } from "./shared/middleware/error-handler.js";
 import { healthRouter } from "./modules/health/health.routes.js";
 import { authRouter } from "./modules/auth/auth.routes.js";
 import { testRouter } from "./modules/test/test.routes.js";
+import { userRouter } from "./modules/users/user.routes.js";
+import { roleRouter } from "./modules/roles/role.routes.js";
+import { moduleRouter } from "./modules/modules/module.routes.js";
+import { subModuleRouter } from "./modules/modules/sub-module.routes.js";
+import { operationRouter } from "./modules/modules/operation.routes.js";
+import { permissionRouter } from "./modules/permissions/permission.routes.js";
+import { docsRouter } from "./modules/docs/docs.routes.js";
 
 export const app = express();
 
@@ -36,6 +43,13 @@ app.use(API_PREFIX, apiLimiter);
 app.use(API_PREFIX, healthRouter);
 app.use(`${API_PREFIX}/auth`, authRouter);
 app.use(`${API_PREFIX}/test`, testRouter);
+app.use(`${API_PREFIX}/users`, userRouter);
+app.use(`${API_PREFIX}/roles`, roleRouter);
+app.use(`${API_PREFIX}/modules`, moduleRouter);
+app.use(`${API_PREFIX}/sub-modules`, subModuleRouter);
+app.use(`${API_PREFIX}/operations`, operationRouter);
+app.use(`${API_PREFIX}/permissions`, permissionRouter);
+app.use(`${API_PREFIX}/docs`, docsRouter);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

@@ -19,6 +19,14 @@ export const rolePermissionRepository = {
     return RolePermissionModel.find({ roleId }).lean().exec();
   },
 
+  findByRoleIds(roleIds: (string | Types.ObjectId)[]) {
+    return RolePermissionModel.find({ roleId: { $in: roleIds } }).lean().exec();
+  },
+
+  findByRoleAndKey(roleId: string | Types.ObjectId, permissionKey: string) {
+    return RolePermissionModel.findOne({ roleId, permissionKey }).lean().exec();
+  },
+
   insertMany(rows: RolePermissionRowInput[]) {
     return RolePermissionModel.insertMany(rows);
   },

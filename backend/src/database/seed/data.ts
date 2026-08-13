@@ -90,6 +90,38 @@ export const SEED_MODULES: SeedModuleDefinition[] = [
           op("delete", "Delete", 4),
         ],
       },
+      {
+        key: "sub-modules",
+        name: "Sub-Modules",
+        order: 5,
+        operations: [
+          op("view", "View", 1),
+          op("create", "Create", 2),
+          op("update", "Update", 3),
+          op("delete", "Delete", 4),
+        ],
+      },
+      {
+        key: "operations",
+        name: "Operations",
+        order: 6,
+        operations: [
+          op("view", "View", 1),
+          op("create", "Create", 2),
+          op("update", "Update", 3),
+          op("delete", "Delete", 4),
+        ],
+      },
+      {
+        key: "role-permissions",
+        name: "Role Permissions",
+        order: 7,
+        operations: [
+          op("view", "View", 1),
+          op("assign", "Assign", 2),
+          op("remove", "Remove", 3),
+        ],
+      },
     ],
   },
   {
@@ -171,6 +203,9 @@ const rbacRoles = (operation: string) => `rbac.roles.${operation}`;
 const rbacUsers = (operation: string) => `rbac.users.${operation}`;
 const rbacModules = (operation: string) => `rbac.modules.${operation}`;
 const rbacPermissions = (operation: string) => `rbac.permissions.${operation}`;
+const rbacSubModules = (operation: string) => `rbac.sub-modules.${operation}`;
+const rbacOperations = (operation: string) => `rbac.operations.${operation}`;
+const rbacRolePermissions = (operation: string) => `rbac.role-permissions.${operation}`;
 
 const VIEW_ONLY = [
   emp("view"),
@@ -181,6 +216,9 @@ const VIEW_ONLY = [
   rbacUsers("view"),
   rbacModules("view"),
   rbacPermissions("view"),
+  rbacSubModules("view"),
+  rbacOperations("view"),
+  rbacRolePermissions("view"),
 ];
 
 export const SEED_ROLES: SeedRoleDefinition[] = [
