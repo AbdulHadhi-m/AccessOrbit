@@ -4,6 +4,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
+  Activity,
   Blocks,
   ExternalLink,
   KeyRound,
@@ -30,6 +31,7 @@ const navItems = [
   { label: "Roles", href: "/roles", icon: Shield, permission: PERMISSIONS.roles.view },
   { label: "Modules", href: "/modules", icon: Blocks, permission: PERMISSIONS.modules.view },
   { label: "Permissions", href: "/permissions", icon: KeyRound, permission: PERMISSIONS.permissions.view },
+  { label: "Audit Logs", href: "/audit-logs", icon: Activity, permission: PERMISSIONS.audit.view },
 ];
 
 function ShellSkeleton() {

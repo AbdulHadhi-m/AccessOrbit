@@ -193,6 +193,21 @@ export const SEED_MODULES: SeedModuleDefinition[] = [
       },
     ],
   },
+  {
+    key: "audit",
+    name: "Audit Logs",
+    description: "System audit logging and activity tracking",
+    order: 5,
+    icon: "activity",
+    subModules: [
+      {
+        key: "",
+        name: "Audit Logs",
+        order: 1,
+        operations: [op("view", "View", 1)],
+      },
+    ],
+  },
 ];
 
 const emp = (operation: string) => `employee.employees.${operation}`;
@@ -206,6 +221,7 @@ const rbacPermissions = (operation: string) => `rbac.permissions.${operation}`;
 const rbacSubModules = (operation: string) => `rbac.sub-modules.${operation}`;
 const rbacOperations = (operation: string) => `rbac.operations.${operation}`;
 const rbacRolePermissions = (operation: string) => `rbac.role-permissions.${operation}`;
+const auditLogs = (operation: string) => `audit.${operation}`;
 
 const VIEW_ONLY = [
   emp("view"),
@@ -219,6 +235,7 @@ const VIEW_ONLY = [
   rbacSubModules("view"),
   rbacOperations("view"),
   rbacRolePermissions("view"),
+  auditLogs("view"),
 ];
 
 export const SEED_ROLES: SeedRoleDefinition[] = [

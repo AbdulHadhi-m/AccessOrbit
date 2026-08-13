@@ -41,6 +41,9 @@ export const PERMISSIONS = {
     update: "rbac.permissions.update",
     delete: "rbac.permissions.delete",
   },
+  audit: {
+    view: "audit.view",
+  },
 } as const;
 
 export type PermissionKey = (typeof PERMISSIONS)[keyof typeof PERMISSIONS][keyof (typeof PERMISSIONS)[keyof typeof PERMISSIONS]];

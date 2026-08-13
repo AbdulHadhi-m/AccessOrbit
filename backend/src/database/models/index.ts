@@ -6,6 +6,7 @@ import { OperationModel } from "./operation.model.js";
 import { PermissionModel } from "./permission.model.js";
 import { RolePermissionModel } from "./role-permission.model.js";
 import { RefreshTokenModel } from "./refresh-token.model.js";
+import { AuditLogModel } from "./audit-log.model.js";
 
 export {
   UserModel,
@@ -16,9 +17,11 @@ export {
   PermissionModel,
   RolePermissionModel,
   RefreshTokenModel,
+  AuditLogModel,
 };
 
 export { USER_STATUSES } from "./user.model.js";
+export { AUDIT_STATUSES } from "./audit-log.model.js";
 export type { User, UserDocument, UserStatus } from "./user.model.js";
 export type { Role, RoleDocument } from "./role.model.js";
 export type { Module, ModuleDocument } from "./module.model.js";
@@ -27,6 +30,7 @@ export type { Operation, OperationDocument } from "./operation.model.js";
 export type { Permission, PermissionDocument } from "./permission.model.js";
 export type { RolePermission, RolePermissionDocument } from "./role-permission.model.js";
 export type { RefreshToken, RefreshTokenDocument } from "./refresh-token.model.js";
+export type { AuditLog, AuditLogDocument, AuditStatus } from "./audit-log.model.js";
 
 export const ALL_MODELS = [
   UserModel,
@@ -37,4 +41,6 @@ export const ALL_MODELS = [
   PermissionModel,
   RolePermissionModel,
   RefreshTokenModel,
+  AuditLogModel,
 ];
+

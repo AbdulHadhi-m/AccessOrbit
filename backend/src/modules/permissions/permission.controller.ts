@@ -2,6 +2,7 @@ import type { NextFunction, Request, Response } from "express";
 import { HttpStatus } from "../../shared/constants/http.js";
 import { sendSuccess } from "../../shared/utils/response.js";
 import { permissionService } from "./permission.service.js";
+import { auditService } from "../audit/audit.service.js";
 
 export async function listPermissions(
   req: Request,
@@ -36,6 +37,14 @@ export async function createPermission(
 ): Promise<void> {
   try {
     const permission = await permissionService.createPermission(req.body);
+    await auditService.logAudit({
+      req,
+      action: "permission.create",
+      category: "permissions",
+      targetId: permission._id.toString(),
+      targetType: "permission",
+      details: req.body,
+    });
     sendSuccess(
       res,
       { permission: permission.toObject() },
@@ -53,6 +62,14 @@ export async function updatePermission(
 ): Promise<void> {
   try {
     const permission = await permissionService.updatePermissionById(req.params.id as string, req.body);
+    await auditService.logAudit({
+      req,
+      action: "permission.update",
+      category: "permissions",
+      targetId: permission.id,
+      targetType: "permission",
+      details: req.body,
+    });
     sendSuccess(res, { permission }, { message: "Permission updated" });
   } catch (error) {
     next(error);
@@ -66,6 +83,13 @@ export async function deletePermission(
 ): Promise<void> {
   try {
     await permissionService.deletePermissionById(req.params.id as string);
+    await auditService.logAudit({
+      req,
+      action: "permission.delete",
+      category: "permissions",
+      targetId: req.params.id as string,
+      targetType: "permission",
+    });
     sendSuccess(res, undefined, { message: "Permission deleted" });
   } catch (error) {
     next(error);

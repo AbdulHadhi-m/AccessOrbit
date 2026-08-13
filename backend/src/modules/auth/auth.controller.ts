@@ -9,6 +9,7 @@ import {
   REFRESH_TOKEN_TTL_SECONDS,
   tokenService,
 } from "./token.service.js";
+import { auditService } from "../audit/audit.service.js";
 
 function refreshCookieOptions() {
   const isProduction = env.NODE_ENV === "production";
@@ -37,8 +38,26 @@ export async function login(req: Request, res: Response, next: NextFunction): Pr
     const { email, password } = req.body;
     const result = await authService.login(email, password);
     setRefreshCookie(res, result.refreshToken);
+
+    await auditService.logAudit({
+      req,
+      actor: { id: result.user.id, email: result.user.email, name: result.user.name },
+      action: "auth.login.success",
+      category: "auth",
+      status: "success",
+      details: { email: result.user.email },
+    });
+
     sendSuccess(res, { user: result.user, accessToken: result.accessToken, expiresIn: tokenService.ACCESS_TOKEN_TTL_SECONDS }, { message: "Login successful" });
   } catch (error) {
+    await auditService.logAudit({
+      req,
+      actor: { email: req.body?.email },
+      action: "auth.login.failure",
+      category: "auth",
+      status: "failure",
+      details: { email: req.body?.email, reason: error instanceof Error ? error.message : "Authentication failed" },
+    });
     next(error);
   }
 }
@@ -59,6 +78,14 @@ export async function logout(req: Request, res: Response, next: NextFunction): P
     const refreshToken = readRefreshToken(req);
     await authService.logout(refreshToken);
     clearRefreshCookie(res);
+
+    await auditService.logAudit({
+      req,
+      action: "auth.logout",
+      category: "auth",
+      status: "success",
+    });
+
     sendSuccess(res, undefined, { message: "Logged out successfully" });
   } catch (error) {
     next(error);

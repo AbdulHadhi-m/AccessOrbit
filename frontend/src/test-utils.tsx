@@ -194,3 +194,23 @@ export function checkboxByAriaLabel(
   }
   return checkbox;
 }
+
+import type { AuditLogDto } from "@/types/audit";
+
+export function makeAuditLog(overrides: Partial<AuditLogDto> = {}): AuditLogDto {
+  return {
+    id: "al1",
+    actor: { id: "u1", email: "admin@example.com", name: "Admin User" },
+    action: "auth.login.success",
+    category: "auth",
+    targetId: null,
+    targetType: null,
+    details: { email: "admin@example.com" },
+    status: "success",
+    ipAddress: "127.0.0.1",
+    userAgent: "Mozilla/5.0",
+    requestId: "req-123",
+    createdAt: "2026-08-13T10:00:00.000Z",
+    ...overrides,
+  };
+}

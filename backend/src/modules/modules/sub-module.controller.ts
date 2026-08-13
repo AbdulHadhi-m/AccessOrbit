@@ -2,6 +2,7 @@ import type { NextFunction, Request, Response } from "express";
 import { HttpStatus } from "../../shared/constants/http.js";
 import { sendSuccess } from "../../shared/utils/response.js";
 import { subModuleService } from "./sub-module.service.js";
+import { auditService } from "../audit/audit.service.js";
 
 export async function listSubModules(
   req: Request,
@@ -36,6 +37,14 @@ export async function createSubModule(
 ): Promise<void> {
   try {
     const subModule = await subModuleService.createSubModule(req.body);
+    await auditService.logAudit({
+      req,
+      action: "sub-module.create",
+      category: "sub-modules",
+      targetId: subModule.id,
+      targetType: "sub-module",
+      details: req.body,
+    });
     sendSuccess(
       res,
       { subModule },
@@ -53,6 +62,14 @@ export async function updateSubModule(
 ): Promise<void> {
   try {
     const subModule = await subModuleService.updateSubModule(req.params.id as string, req.body);
+    await auditService.logAudit({
+      req,
+      action: "sub-module.update",
+      category: "sub-modules",
+      targetId: subModule.id,
+      targetType: "sub-module",
+      details: req.body,
+    });
     sendSuccess(res, { subModule }, { message: "Sub-module updated" });
   } catch (error) {
     next(error);
@@ -66,6 +83,13 @@ export async function deleteSubModule(
 ): Promise<void> {
   try {
     await subModuleService.deleteSubModule(req.params.id as string);
+    await auditService.logAudit({
+      req,
+      action: "sub-module.delete",
+      category: "sub-modules",
+      targetId: req.params.id as string,
+      targetType: "sub-module",
+    });
     sendSuccess(res, undefined, { message: "Sub-module deleted" });
   } catch (error) {
     next(error);

@@ -15,5 +15,5 @@ export function buildPermissionKey(
   operationKey: string,
   subModuleKey?: string
 ): string {
-  return [moduleKey, subModuleKey, operationKey].filter((part) => part !== undefined).join(".");
+  return [moduleKey, subModuleKey, operationKey].filter((part) => part !== undefined && part !== "").join(".");
 }
