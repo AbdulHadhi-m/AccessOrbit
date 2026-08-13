@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { create } from "zustand";
 
 export type QueryStatus = "loading" | "success" | "error";
@@ -12,7 +12,7 @@ export interface QuerySnapshot<T> {
   refetch: () => void;
 }
 
-interface QueryEntry<T = unknown> {
+export interface QueryEntry<T = unknown> {
   data: T | null;
   error: Error | null;
   status: QueryStatus;
@@ -25,8 +25,8 @@ interface QueryStoreState {
 }
 
 interface QueryStoreActions {
-  getOrCreate: <T>(key: string, fetcher: () => Promise<T>) => QueryEntry<T>;
-  run: <T>(key: string) => Promise<void>;
+  register: <T>(key: string, fetcher: () => Promise<T>) => void;
+  run: <T>(key: string, customFetcher?: () => Promise<T>) => Promise<void>;
   invalidate: (...keys: string[]) => void;
 }
 
@@ -35,74 +35,100 @@ type QueryStore = QueryStoreState & QueryStoreActions;
 export const useQueryStore = create<QueryStore>((set, get) => ({
   entries: {},
 
-  getOrCreate: <T>(key: string, fetcher: () => Promise<T>): QueryEntry<T> => {
+  register: <T>(key: string, fetcher: () => Promise<T>) => {
     const { entries } = get();
     if (entries[key]) {
-      return entries[key] as QueryEntry<T>;
+      entries[key].fetcher = fetcher as () => Promise<unknown>;
+      return;
     }
-    const entry: QueryEntry<T> = {
-      data: null,
-      error: null,
-      status: "loading",
-      inflight: null,
-      fetcher,
-    };
-    set({ entries: { ...get().entries, [key]: entry as QueryEntry } });
-    return entry;
+    set((state) => ({
+      entries: {
+        ...state.entries,
+        [key]: {
+          data: null,
+          error: null,
+          status: "loading",
+          inflight: null,
+          fetcher: fetcher as () => Promise<unknown>,
+        },
+      },
+    }));
   },
 
-  run: async <T>(key: string): Promise<void> => {
-    const { entries } = get();
-    const entry = entries[key] as QueryEntry<T> | undefined;
-    if (!entry) return;
-    if (entry.inflight) {
+  run: async <T>(key: string, customFetcher?: () => Promise<T>): Promise<void> => {
+    const entry = get().entries[key] as QueryEntry<T> | undefined;
+    const fetcher = customFetcher ?? entry?.fetcher;
+    if (!fetcher) return;
+
+    if (entry?.inflight) {
       await entry.inflight;
       return;
     }
+
     const inflight = (async () => {
       try {
-        const data = await entry.fetcher();
-        const current = get().entries;
-        set({
+        const data = await fetcher();
+        set((state) => ({
           entries: {
-            ...current,
-            [key]: { ...current[key], data, error: null, status: "success" as const, inflight: null },
-          },
-        });
-      } catch (error) {
-        const current = get().entries;
-        set({
-          entries: {
-            ...current,
+            ...state.entries,
             [key]: {
-              ...current[key],
+              ...(state.entries[key] ?? {}),
+              data,
+              error: null,
+              status: "success" as const,
+              inflight: null,
+              fetcher: fetcher as () => Promise<unknown>,
+            },
+          },
+        }));
+      } catch (error) {
+        set((state) => ({
+          entries: {
+            ...state.entries,
+            [key]: {
+              ...(state.entries[key] ?? {}),
               error: error instanceof Error ? error : new Error("Request failed"),
               status: "error" as const,
               inflight: null,
+              fetcher: fetcher as () => Promise<unknown>,
             },
           },
-        });
+        }));
       }
     })();
-    // Set inflight on the entry
-    const current = get().entries;
-    set({
-      entries: { ...current, [key]: { ...current[key], inflight } },
-    });
+
+    set((state) => ({
+      entries: {
+        ...state.entries,
+        [key]: {
+          ...(state.entries[key] ?? {
+            data: null,
+            error: null,
+            status: "loading",
+            fetcher: fetcher as () => Promise<unknown>,
+          }),
+          inflight,
+        },
+      },
+    }));
+
     await inflight;
   },
 
   invalidate: (...keys: string[]) => {
-    const { entries } = get();
-    const updated = { ...entries };
     const toRun: string[] = [];
-    for (const entryKey of Object.keys(updated)) {
-      if (keys.some((prefix) => entryKey === prefix || entryKey.startsWith(`${prefix}:`))) {
-        updated[entryKey] = { ...updated[entryKey], status: "loading" };
-        toRun.push(entryKey);
+
+    set((state) => {
+      const updated = { ...state.entries };
+      for (const entryKey of Object.keys(updated)) {
+        if (keys.some((prefix) => entryKey === prefix || entryKey.startsWith(`${prefix}:`))) {
+          updated[entryKey] = { ...updated[entryKey], status: "loading" };
+          toRun.push(entryKey);
+        }
       }
-    }
-    set({ entries: updated });
+      return { entries: updated };
+    });
+
     for (const k of toRun) {
       void get().run(k);
     }
@@ -122,47 +148,37 @@ export function invalidate(...keys: string[]): void {
 }
 
 export function useQuery<T>(key: string, fetcher: () => Promise<T>): QuerySnapshot<T> {
-  const store = useQueryStore();
-  const [state, setState] = useState<{
-    data: T | null;
-    error: Error | null;
-    status: QueryStatus;
-  }>(() => {
-    const entry = store.getOrCreate(key, fetcher);
-    return { data: entry.data, error: entry.error, status: entry.status };
-  });
-  const keyRef = useRef(key);
-  keyRef.current = key;
+  const fetcherRef = useRef(fetcher);
+  fetcherRef.current = fetcher;
+
+  const entry = useQueryStore(
+    useCallback((s) => s.entries[key], [key])
+  );
 
   useEffect(() => {
-    // Initialize entry
-    const entry = useQueryStore.getState().getOrCreate(key, fetcher);
+    const store = useQueryStore.getState();
+    store.register(key, () => fetcherRef.current());
 
-    // Sync state from store on subscription
-    const unsub = useQueryStore.subscribe((s) => {
-      const e = s.entries[key];
-      if (e) {
-        setState({ data: e.data as T | null, error: e.error, status: e.status });
-      }
-    });
-
-    // Trigger fetch if still loading
-    if (entry.status === "loading") {
-      void useQueryStore.getState().run(key);
+    const currentEntry = store.entries[key];
+    if (!currentEntry || (currentEntry.status === "loading" && !currentEntry.inflight)) {
+      void store.run(key, () => fetcherRef.current());
     }
-
-    return unsub;
-  }, [key, fetcher]);
+  }, [key]);
 
   const refetch = useCallback(() => {
-    const current = useQueryStore.getState().entries[keyRef.current];
-    if (!current) return;
-    const entries = useQueryStore.getState().entries;
-    useQueryStore.setState({
-      entries: { ...entries, [keyRef.current]: { ...current, status: "loading" } },
-    });
-    void useQueryStore.getState().run(keyRef.current);
-  }, []);
+    const store = useQueryStore.getState();
+    const current = store.entries[key];
+    if (current) {
+      useQueryStore.setState((s) => ({
+        entries: { ...s.entries, [key]: { ...current, status: "loading" } },
+      }));
+    }
+    void store.run(key, () => fetcherRef.current());
+  }, [key]);
 
-  return { data: state.data, error: state.error, status: state.status, refetch };
+  const data = (entry?.data as T | null) ?? null;
+  const error = entry?.error ?? null;
+  const status = entry?.status ?? "loading";
+
+  return { data, error, status, refetch };
 }

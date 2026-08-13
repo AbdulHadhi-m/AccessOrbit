@@ -18,6 +18,7 @@ import {
   Activity,
   ChevronRight,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { apiFetch } from "@/lib/api/client";
@@ -38,12 +39,23 @@ interface SearchDialogProps {
 }
 
 export function SearchDialog({ isOpen, onOpenChange }: SearchDialogProps) {
+  const router = useRouter();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleNavigate = useCallback(
+    (targetUrl: string) => {
+      const parts = targetUrl.split("/");
+      const baseRoute = parts[1] ? `/${parts[1]}` : targetUrl;
+      router.push(baseRoute);
+      onOpenChange(false);
+    },
+    [router, onOpenChange]
+  );
 
   useEffect(() => {
     if (isOpen) {
@@ -95,8 +107,7 @@ export function SearchDialog({ isOpen, onOpenChange }: SearchDialogProps) {
     } else if (e.key === "Enter") {
       e.preventDefault();
       if (results[selectedIndex]) {
-        window.location.href = results[selectedIndex].url;
-        onOpenChange(false);
+        handleNavigate(results[selectedIndex].url);
       }
     } else if (e.key === "Escape") {
       onOpenChange(false);
@@ -159,15 +170,27 @@ export function SearchDialog({ isOpen, onOpenChange }: SearchDialogProps) {
             className="flex-1 border-none bg-transparent text-base outline-none placeholder:text-muted-foreground"
             aria-label="Search"
           />
+          {isLoading && <Loader2 className="size-4 animate-spin text-muted-foreground" aria-hidden="true" />}
+          {query.length > 0 && (
+            <button
+              type="button"
+              onClick={handleClear}
+              className="rounded-md p-1 text-xs text-muted-foreground hover:bg-muted hover:text-foreground"
+              aria-label="Clear text"
+              title="Clear text"
+            >
+              Clear
+            </button>
+          )}
           <button
             type="button"
-            onClick={handleClear}
-            className="rounded-md p-1 text-muted-foreground hover:bg-muted"
-            aria-label="Clear search"
+            onClick={() => onOpenChange(false)}
+            className="rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+            aria-label="Close search dialog"
+            title="Close dialog"
           >
             <X className="size-4" />
           </button>
-          {isLoading && <Loader2 className="size-4 animate-spin" aria-hidden="true" />}
         </div>
 
         <div className="max-h-96 overflow-y-auto">
@@ -219,10 +242,7 @@ export function SearchDialog({ isOpen, onOpenChange }: SearchDialogProps) {
                       return (
                         <button
                           key={result.id}
-                          onClick={() => {
-                            window.location.href = result.url;
-                            onOpenChange(false);
-                          }}
+                          onClick={() => handleNavigate(result.url)}
                           className={cn(
                             "flex w-full items-center gap-3 rounded-md px-3 py-2 text-left transition-colors",
                             isSelected

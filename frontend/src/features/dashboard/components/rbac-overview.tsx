@@ -43,33 +43,33 @@ export function RbacOverview({ modules, counts, loading }: RbacOverviewProps) {
   };
 
   return (
-    <Card className="shadow-xs">
+    <Card className="shadow-xs transition-shadow duration-200 hover:shadow-md">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <FolderTree className="size-4 text-muted-foreground" aria-hidden="true" />
+        <CardTitle className="flex items-center gap-2 text-lg font-bold">
+          <FolderTree className="size-5 text-primary" aria-hidden="true" />
           RBAC structure
         </CardTitle>
         <CardDescription>How access is organized, from modules down to permission codes.</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-5">
-        <ol className="flex flex-col items-stretch gap-1 sm:flex-row sm:items-center sm:gap-0">
+      <CardContent className="space-y-6">
+        <ol className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:gap-0">
           {nodes.map((node, index) => {
             const Icon = node.icon;
             return (
               <li key={node.label} className="flex items-center">
-                <span className="flex min-w-36 items-center gap-2 rounded-lg border bg-muted/40 px-3 py-2">
-                  <Icon className="size-4 text-muted-foreground" aria-hidden="true" />
-                  <span className="text-sm text-muted-foreground">{node.label}</span>
+                <span className="flex min-w-40 items-center gap-2.5 rounded-xl border bg-muted/30 px-3.5 py-2.5 transition-colors hover:bg-muted/60">
+                  <Icon className="size-4 text-primary" aria-hidden="true" />
+                  <span className="text-sm font-medium text-muted-foreground">{node.label}</span>
                   {loading ? (
-                    <Skeleton className="h-4 w-8" />
+                    <Skeleton className="h-4 w-8 rounded-sm" />
                   ) : (
-                    <span className="text-sm font-semibold">{node.value.toLocaleString()}</span>
+                    <span className="ml-auto text-sm font-bold tabular-nums text-foreground">{node.value.toLocaleString()}</span>
                   )}
                 </span>
                 {index < nodes.length - 1 && (
                   <>
-                    <ArrowRight className="mx-1 hidden size-4 shrink-0 text-muted-foreground sm:block" aria-hidden="true" />
-                    <ArrowDown className="mx-auto size-4 shrink-0 text-muted-foreground sm:hidden" aria-hidden="true" />
+                    <ArrowRight className="mx-2 hidden size-4 shrink-0 text-muted-foreground/60 sm:block" aria-hidden="true" />
+                    <ArrowDown className="mx-auto my-1 size-4 shrink-0 text-muted-foreground/60 sm:hidden" aria-hidden="true" />
                   </>
                 )}
               </li>
@@ -78,38 +78,38 @@ export function RbacOverview({ modules, counts, loading }: RbacOverviewProps) {
         </ol>
 
         <div>
-          <h3 className="mb-2 text-sm font-medium">By module</h3>
+          <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">By module</h3>
           {loading ? (
             <div className="space-y-2">
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-12 w-full rounded-lg" />
+              <Skeleton className="h-12 w-full rounded-lg" />
+              <Skeleton className="h-12 w-full rounded-lg" />
             </div>
           ) : modules.length === 0 ? (
-            <p className="rounded-lg border border-dashed px-3 py-4 text-center text-sm text-muted-foreground">
+            <p className="rounded-xl border border-dashed px-3 py-6 text-center text-sm text-muted-foreground">
               No modules have been created yet.
             </p>
           ) : (
-            <ul className="divide-y rounded-lg border">
+            <ul className="divide-y rounded-xl border overflow-hidden">
               {modules.map((rbacModule) => {
                 const summary = moduleSummary(rbacModule);
                 return (
                   <li
                     key={rbacModule.id}
-                    className="flex flex-col gap-1 px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between"
+                    className="flex flex-col gap-2 px-4 py-3 transition-colors hover:bg-muted/40 sm:flex-row sm:items-center sm:justify-between"
                   >
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-medium">{rbacModule.name}</p>
-                      <p className="truncate text-xs text-muted-foreground">{rbacModule.key}</p>
+                      <p className="truncate text-sm font-semibold text-foreground">{rbacModule.name}</p>
+                      <p className="truncate text-xs font-mono text-muted-foreground">{rbacModule.key}</p>
                     </div>
-                    <div className="flex flex-wrap gap-1.5">
-                      <Badge variant="outline">
+                    <div className="flex flex-wrap gap-2">
+                      <Badge variant="secondary" className="text-xs font-normal">
                         {summary.subModules} sub-module{summary.subModules === 1 ? "" : "s"}
                       </Badge>
-                      <Badge variant="outline">
+                      <Badge variant="secondary" className="text-xs font-normal">
                         {summary.operations} operation{summary.operations === 1 ? "" : "s"}
                       </Badge>
-                      <Badge variant="outline">
+                      <Badge variant="secondary" className="text-xs font-normal">
                         {summary.permissions} permission{summary.permissions === 1 ? "" : "s"}
                       </Badge>
                     </div>

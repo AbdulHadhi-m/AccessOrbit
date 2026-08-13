@@ -11,7 +11,7 @@ interface StatsGridProps {
 
 export function StatsGrid({ data, access }: StatsGridProps) {
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
       {access.users && data.users && (
         <>
           <StatCard
@@ -19,6 +19,7 @@ export function StatsGrid({ data, access }: StatsGridProps) {
             icon={Users}
             value={data.users.total}
             description="Registered accounts"
+            accent="default"
           />
           <StatCard
             title="Active users"
@@ -41,7 +42,8 @@ export function StatsGrid({ data, access }: StatsGridProps) {
           title="Total roles"
           icon={Shield}
           value={data.roles.total}
-          description="Roles in the RBAC system"
+          description="RBAC system roles"
+          accent="default"
         />
       )}
       {access.modules && data.hierarchy && (
@@ -49,7 +51,8 @@ export function StatsGrid({ data, access }: StatsGridProps) {
           title="Total modules"
           icon={Blocks}
           value={data.hierarchy.counts.modules}
-          description="Top-level permission modules"
+          description="Top-level modules"
+          accent="default"
         />
       )}
       {access.permissions && data.permissions && (
@@ -57,7 +60,8 @@ export function StatsGrid({ data, access }: StatsGridProps) {
           title="Total permissions"
           icon={KeyRound}
           value={data.permissions.total}
-          description="Permission codes across modules"
+          description="System permission codes"
+          accent="default"
         />
       )}
     </div>

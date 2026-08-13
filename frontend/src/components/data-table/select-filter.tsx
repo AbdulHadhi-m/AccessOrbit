@@ -26,10 +26,12 @@ export function SelectFilter({
   ariaLabel,
   disabled,
 }: SelectFilterProps) {
+  const currentValue = value ? value : "__all__";
+
   return (
     <Select
-      value={value || undefined}
-      onValueChange={(nextValue) => onValueChange(nextValue ?? "")}
+      value={currentValue}
+      onValueChange={(nextValue) => onValueChange(nextValue === "__all__" ? "" : (nextValue ?? ""))}
       disabled={disabled}
     >
       <SelectTrigger aria-label={ariaLabel ?? placeholder} className="w-full sm:w-44">

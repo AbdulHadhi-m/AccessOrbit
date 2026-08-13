@@ -19,7 +19,7 @@ export function SelectField({
 }: SelectFieldProps) {
   return (
     <Select
-      value={value || undefined}
+      value={value ?? ""}
       onValueChange={(nextValue) => onValueChange(nextValue ?? "")}
       disabled={disabled}
     >
