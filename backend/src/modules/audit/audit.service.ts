@@ -120,9 +120,9 @@ export const auditService = {
         if (!ipAddress) {
           const xForwardedFor = req.headers["x-forwarded-for"];
           if (typeof xForwardedFor === "string") {
-            ipAddress = xForwardedFor.split(",")[0].trim();
+            ipAddress = xForwardedFor.split(",")[0]?.trim() ?? "";
           } else if (Array.isArray(xForwardedFor) && xForwardedFor.length > 0) {
-            ipAddress = xForwardedFor[0].trim();
+            ipAddress = xForwardedFor[0]?.trim() ?? "";
           } else {
             ipAddress = req.ip || req.socket.remoteAddress || "";
           }

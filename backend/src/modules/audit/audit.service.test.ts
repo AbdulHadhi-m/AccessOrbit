@@ -129,8 +129,8 @@ describe("auditService", () => {
       expect(res.pagination.total).toBe(3);
       expect(res.pagination.totalPages).toBe(2);
       expect(res.data.length).toBe(2);
-      expect(res.data[0].action).toBe("auth.login.failure");
-      expect(res.data[1].action).toBe("user.create");
+      expect(res.data[0]?.action).toBe("auth.login.failure");
+      expect(res.data[1]?.action).toBe("user.create");
     });
 
     it("filters by category, status, and search query", async () => {
@@ -139,7 +139,7 @@ describe("auditService", () => {
 
       const failRes = await auditService.listAuditLogs({ status: "failure" });
       expect(failRes.pagination.total).toBe(1);
-      expect(failRes.data[0].actor?.email).toBe("user2@example.com");
+      expect(failRes.data[0]?.actor?.email).toBe("user2@example.com");
 
       const searchRes = await auditService.listAuditLogs({ search: "Bob" });
       expect(searchRes.pagination.total).toBe(1);

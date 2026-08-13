@@ -50,38 +50,38 @@ export function AuditLogsTable({
         <TableRow>
           <TableHead>
             <SortHeader
-              column="createdAt"
+              sortKey="createdAt"
               label="Timestamp"
-              currentSort={sort}
-              currentOrder={order}
+              sort={sort}
+              order={order}
               onSortChange={onSortChange}
             />
           </TableHead>
           <TableHead>Actor</TableHead>
           <TableHead>
             <SortHeader
-              column="category"
+              sortKey="category"
               label="Category"
-              currentSort={sort}
-              currentOrder={order}
+              sort={sort}
+              order={order}
               onSortChange={onSortChange}
             />
           </TableHead>
           <TableHead>
             <SortHeader
-              column="action"
+              sortKey="action"
               label="Action"
-              currentSort={sort}
-              currentOrder={order}
+              sort={sort}
+              order={order}
               onSortChange={onSortChange}
             />
           </TableHead>
           <TableHead>
             <SortHeader
-              column="status"
+              sortKey="status"
               label="Status"
-              currentSort={sort}
-              currentOrder={order}
+              sort={sort}
+              order={order}
               onSortChange={onSortChange}
             />
           </TableHead>

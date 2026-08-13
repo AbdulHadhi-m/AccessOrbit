@@ -12,6 +12,7 @@ import {
   createUser,
   login,
   seedAdmin,
+  seedRbacHierarchy,
   TEST_PASSWORD,
 } from "../../database/test-helpers.js";
 
@@ -35,6 +36,7 @@ describe("Audit Logs Router - GET /api/v1/audit-logs", () => {
   });
 
   it("returns 403 Forbidden if user lacks audit.view permission", async () => {
+    await seedRbacHierarchy();
     const roleId = await createRole("plain-user", ["rbac.users.view"]);
     await createUser("plain@example.com", [roleId]);
     const token = await login("plain@example.com");
@@ -49,6 +51,7 @@ describe("Audit Logs Router - GET /api/v1/audit-logs", () => {
 
   it("returns 200 OK with paginated list for Super Admin", async () => {
     const admin = await seedAdmin();
+    await AuditLogModel.deleteMany({}); // clear login audit log for precise count assertion
 
     await AuditLogModel.create({
       action: "user.create",
@@ -69,6 +72,7 @@ describe("Audit Logs Router - GET /api/v1/audit-logs", () => {
   });
 
   it("allows auditing role with audit.view permission to access logs", async () => {
+    await seedRbacHierarchy();
     const auditorRoleId = await createRole("auditor-role", ["audit.view"]);
     await createUser("auditor@example.com", [auditorRoleId]);
     const auditorToken = await login("auditor@example.com");
@@ -95,6 +99,7 @@ describe("Audit Logs Router - GET /api/v1/audit-logs", () => {
 
   it("filters audit logs by category, action, and search query", async () => {
     const admin = await seedAdmin();
+    await AuditLogModel.deleteMany({});
 
     await AuditLogModel.create([
       {

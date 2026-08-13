@@ -176,11 +176,15 @@ All admin endpoints are protected by `requireAuth` + a dynamic permission (`rbac
 | Roles | `GET/POST /api/v1/roles`, `GET/PATCH/DELETE /api/v1/roles/:id` | `rbac.roles.{view,create,update,delete}` |
 | Role permissions | `GET /api/v1/roles/:id/permissions`, `POST /api/v1/roles/:id/permissions`, `DELETE /api/v1/roles/:id/permissions/:permissionId` | `rbac.role-permissions.{view,assign,remove}` |
 | Modules | `GET/POST /api/v1/modules`, `GET/PATCH/DELETE /api/v1/modules/:id`, `GET /api/v1/modules/hierarchy` | `rbac.modules.*` |
-| Sub-modules | `GET/POST /api/v1/sub-modules`, `GET/PATCH/DELETE /api/v1/sub-modules/:id` | `rbac.sub-modules.*` |
+| Sub-Modules | `GET/POST /api/v1/sub-modules`, `GET/PATCH/DELETE /api/v1/sub-modules/:id` | `rbac.sub-modules.*` |
 | Operations | `GET/POST /api/v1/operations`, `GET/PATCH/DELETE /api/v1/operations/:id` | `rbac.operations.*` |
 | Permissions | `GET/POST /api/v1/permissions`, `GET/PATCH/DELETE /api/v1/permissions/:id` | `rbac.permissions.*` |
+| Audit Logs | `GET /api/v1/audit-logs` | `audit.view` |
 
 Behavior highlights:
+- Read-only Audit Logging API (`GET /api/v1/audit-logs`) with query filters (`category`, `action`, `status`, `actorId`, `startDate`, `endDate`, `search`), pagination, and strict read-only enforcement.
+- Automatic non-blocking auditing for authentication (login success/failure, logout) and administrative CRUD operations across users, roles, modules, sub-modules, operations, permissions, and role-permission assignments.
+- Automatic recursive field sanitization redacting passwords, secrets, and auth tokens before persistence.
 - Lists support pagination (`page`, `limit`), `search`, and `sort`/`order` (e.g. `GET /users?search=jane&status=active&sort=email&order=asc`).
 - Error codes: `404` unknown resource, `422` invalid body/relationship (e.g. operation's sub-module belongs to a different module), `409` duplicates and integrity blocks (system role, role in use, module/sub-module/operation/permission referenced by children, self-disable/self-delete).
 - Role membership and permission grants take effect immediately — no token reissue (resolution is per-request, see Authorization above).
