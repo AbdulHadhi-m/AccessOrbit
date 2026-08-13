@@ -137,7 +137,17 @@ Screens (all under the `/admin` route group, all static, all data-driven):
 
 Shared building blocks: `lib/query/query-client.ts` (a lightweight `useQuery` with cached refetch + invalidation), the permission layer (see Authorization below), typed services per feature, form dialogs with inline Zod validation, confirm dialogs, toast notifications, and skeleton/empty/error states on every list. If the backend rejects a call the UI believed was allowed (permission revoked mid-session), the request surfaces a friendly permission error and the session is re-fetched — the backend remains the final security authority.
 
-Feature tests (Vitest + Testing Library) cover users, roles, permissions, and authorization (`PermissionGuard`, `usePermission`, 403 handling, and admin shell navigation); run with `npm test -w frontend`.
+Feature tests (Vitest + Testing Library) cover users, roles, permissions, authorization (`PermissionGuard`, `usePermission`, 403 handling, and admin shell navigation), and the dashboard; run with `npm test -w frontend`.
+
+## Frontend (Phase 8) — Admin dashboard and system overview
+
+`/dashboard` (available to every authenticated user, content permission-gated) replaces the static welcome screen with a live system overview, built entirely from existing APIs — no dashboard-specific backend. One `useDashboard` hook fires parallel calls for users, roles, permissions, and the module hierarchy (results cached under a user-scoped query key so one account never sees another's data), each section rendered only when its permission is held:
+
+- **Stat cards** — total / active / suspended users (`rbac.users.view`), roles (`rbac.roles.view`), modules (`rbac.modules.view`), permissions (`rbac.permissions.view`).
+- **RBAC structure** — module → sub-module → operation → permission flow with per-module counts from `GET /modules/hierarchy`.
+- **Recent lists** — newest users, roles, and permissions with status badges and relative timestamps, linking to the admin screens.
+
+Loading renders skeletons (never misleading zeros); failures show a friendly error card with Retry; users without any dashboard permission get a dedicated empty state. Layout is responsive (cards collapse on mobile, the RBAC flow becomes vertical).
 
 ## Authorization
 
