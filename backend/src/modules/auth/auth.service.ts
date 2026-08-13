@@ -2,6 +2,7 @@ import bcrypt from "bcrypt";
 import { Types } from "mongoose";
 import type { UserStatus } from "../../database/models/index.js";
 import { ForbiddenError, UnauthorizedError } from "../../shared/errors/index.js";
+import { permissionResolutionService } from "../authorization/permission-resolution.service.js";
 import { userRepository } from "../users/user.repository.js";
 import { roleRepository } from "../roles/role.repository.js";
 import { tokenService } from "./token.service.js";
@@ -16,18 +17,21 @@ export interface SafeUser {
   name: string;
   roles: { id: string; name: string; slug: string }[];
   status: UserStatus;
+  permissions: string[];
 }
 
 async function toSafeUser(userId: string | Types.ObjectId): Promise<SafeUser> {
   const user = await userRepository.findById(userId);
   if (!user) throw new UnauthorizedError("User no longer exists", "AUTH_UNAUTHORIZED");
   const roles = await roleRepository.findActiveByIds(user.roleIds ?? []);
+  const { permissions } = await permissionResolutionService.resolvePermissionsForUser(userId);
   return {
     id: user._id.toString(),
     email: user.email,
     name: user.name,
     roles: roles.map((role) => ({ id: role._id.toString(), name: role.name, slug: role.slug })),
     status: user.status,
+    permissions,
   };
 }
 

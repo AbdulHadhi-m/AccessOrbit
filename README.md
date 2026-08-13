@@ -4,7 +4,7 @@
 
 New modules, sub-modules, operations, permissions, roles, and role assignments are managed as data through the application — no authorization code changes required.
 
-> **Status: Phase 6 (Frontend Foundation & Authentication)** — the Next.js app shell and complete client-side auth flow are live: login page, session hydration via `GET /auth/me` + `POST /auth/refresh`, in-memory access token with automatic single-flight refresh on 401, protected `/dashboard` layout with guard + loading skeleton, logout, and typed API error handling (request IDs surfaced on login failures). RBAC administration screens come next.
+> **Status: Phase 7 (Dynamic RBAC Administration)** — the full RBAC administration UI is live: users, roles, role-permission assignment, modules, sub-modules, operations, and permissions screens. Every screen is data-driven and gated by permission codes (never role names) via the backend `SafeUser.permissions` + client `can()`. Completed earlier: app shell + auth flow (Phase 6) and the backend RBAC core (Phases 4–5).
 
 ## Architecture Summary
 
@@ -22,7 +22,7 @@ New modules, sub-modules, operations, permissions, roles, and role assignments a
 | Database | MongoDB |
 | Validation | Zod |
 | Logging | Pino (structured JSON, redacted secrets) |
-| Security | Helmet, CORS, rate limiting, JWT (later phase) |
+| Security | Helmet, CORS, rate limiting, JWT (access + rotating refresh) |
 
 ## Project Structure
 
@@ -123,6 +123,22 @@ Auth architecture:
 
 Access tokens live only in memory (15-minute lifetime, refreshed transparently), so no sensitive material touches cookies or storage on the frontend.
 
+## Frontend (Phase 7) — RBAC administration
+
+The backend session now includes the user's effective permission codes (`SafeUser.permissions`), so the UI can gate itself client-side with `can("rbac.users.view")` — strictly permission-based, never role-name checks. Navigation is filtered to the sections the current user may access, and any route lacking its permission renders the `/access-denied` page.
+
+Screens (all under the `/admin` route group, all static, all data-driven):
+
+- **`/admin/users`** (`rbac.users.*`) — paginated table with search, status filter, sorting, and column-aware empty/error/skeleton states; create/edit dialogs; suspend/activate and delete with confirmation; role assignment dialog (`POST /users/:id/roles`). No password hashes or refresh tokens ever reach the UI.
+- **`/admin/roles`** (`rbac.roles.*`) — same list/CRUD treatment plus an active toggle; the super-administrator role is protected against disable/delete.
+- **`/admin/roles/:id/permissions`** (`rbac.role-permissions.*`) — assign permissions to a role using a dynamic module → sub-module → operation → permission hierarchy (from `GET /modules/hierarchy`), each row toggled immediately (no save step) with toast feedback.
+- **`/admin/modules`** (`rbac.modules.*`, `rbac.sub-modules.*`, `rbac.operations.*`) — three linked tabs: modules, their sub-modules, and operations, with full CRUD on each and module-context filtering.
+- **`/admin/permissions`** (`rbac.permissions.*`) — permissions filtered by module, keyed to the operation that owns them; create/edit/activate/delete. Keys must match the shared slug pattern (e.g. `purchase-orders.view`) — underscores are rejected by both client and server.
+
+Shared building blocks: `lib/query/query-client.ts` (a lightweight `useQuery` with cached refetch + invalidation), `can()` from `hooks/use-session.ts`, typed services per feature, form dialogs with inline Zod validation, confirm dialogs, toast notifications, and skeleton/empty/error states on every list.
+
+Feature tests (Vitest + Testing Library) cover users, roles, permissions, and authorization (`PermissionGate` + admin shell navigation); run with `npm test -w frontend`.
+
 ## Authorization
 
 Protecting an endpoint is two layers, kept fully separate:
@@ -165,7 +181,8 @@ Interactive OpenAPI documentation: `GET /api/v1/docs` (Swagger UI) and raw spec 
 ## Tests
 
 ```bash
-npm test    # auth + RBAC core tests (uses a separate accessorbit_test database)
+npm test    # backend: auth + RBAC core tests (uses a separate accessorbit_test database)
+npm test -w frontend   # frontend: feature + authorization tests (Vitest + Testing Library, jsdom)
 ```
 
 ## Installation

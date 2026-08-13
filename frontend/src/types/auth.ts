@@ -14,6 +14,7 @@ export interface User {
   name: string;
   roles: RoleRef[];
   status: UserStatus;
+  permissions: string[];
 }
 
 export interface AuthSession {

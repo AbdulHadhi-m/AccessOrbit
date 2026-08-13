@@ -4,27 +4,31 @@ import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
+  Blocks,
   ExternalLink,
   KeyRound,
   LayoutDashboard,
   Loader2,
   LogOut,
+  Menu,
   Shield,
   ShieldCheck,
   Users,
+  X,
 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PERMISSIONS } from "@/config/permissions";
 import { env } from "@/config/env";
 import { useSession } from "@/hooks/use-session";
 
 const navItems = [
-  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard, available: true },
-  { label: "Users", href: "/users", icon: Users, available: false },
-  { label: "Roles", href: "/roles", icon: Shield, available: false },
-  { label: "Permissions", href: "/permissions", icon: KeyRound, available: false },
+  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard, permission: null },
+  { label: "Users", href: "/users", icon: Users, permission: PERMISSIONS.users.view },
+  { label: "Roles", href: "/roles", icon: Shield, permission: PERMISSIONS.roles.view },
+  { label: "Modules", href: "/modules", icon: Blocks, permission: PERMISSIONS.modules.view },
+  { label: "Permissions", href: "/permissions", icon: KeyRound, permission: PERMISSIONS.permissions.view },
 ];
 
 function ShellSkeleton() {
@@ -63,33 +67,23 @@ function BrandMark() {
   );
 }
 
-function SidebarNav() {
+function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
+  const { can } = useSession();
+
   return (
     <nav aria-label="Main navigation" className="mt-6 space-y-1">
       {navItems.map((item) => {
+        if (item.permission && !can(item.permission)) {
+          return null;
+        }
         const Icon = item.icon;
         const active = pathname === item.href;
-        if (!item.available) {
-          return (
-            <span
-              key={item.label}
-              className="flex cursor-not-allowed items-center justify-between rounded-lg px-3 py-2 text-sm text-muted-foreground/60"
-              aria-disabled="true"
-              title={`${item.label} management is coming soon`}
-            >
-              <span className="flex items-center gap-2.5">
-                <Icon className="size-4" aria-hidden="true" />
-                {item.label}
-              </span>
-              <Badge variant="outline">Soon</Badge>
-            </span>
-          );
-        }
         return (
           <Link
             key={item.label}
             href={item.href}
+            onClick={onNavigate}
             aria-current={active ? "page" : undefined}
             className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors ${
               active
@@ -125,9 +119,12 @@ function UserSection({ onLoggedOut }: { onLoggedOut: () => void }) {
   return (
     <div className="flex items-center gap-2">
       {user.roles.map((role) => (
-        <Badge key={role.id} variant="secondary" className="hidden sm:inline-flex">
+        <span
+          key={role.id}
+          className="hidden rounded-full border px-2.5 py-0.5 text-xs text-muted-foreground sm:inline-flex"
+        >
           {role.name}
-        </Badge>
+        </span>
       ))}
       <span className="hidden text-sm font-medium md:block">{user.name}</span>
       <Button
@@ -151,6 +148,7 @@ function UserSection({ onLoggedOut }: { onLoggedOut: () => void }) {
 export function DashboardShell({ children }: { children: ReactNode }) {
   const router = useRouter();
   const { status } = useSession();
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -187,14 +185,37 @@ export function DashboardShell({ children }: { children: ReactNode }) {
 
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="sticky top-0 z-10 flex h-14 items-center justify-between gap-4 border-b bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/80">
-          <div className="flex items-center gap-3 lg:hidden">
-            <BrandMark />
+          <div className="flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="lg:hidden"
+              onClick={() => setMobileNavOpen((open) => !open)}
+              aria-expanded={mobileNavOpen}
+              aria-controls="mobile-navigation"
+              aria-label={mobileNavOpen ? "Close navigation menu" : "Open navigation menu"}
+            >
+              {mobileNavOpen ? <X aria-hidden="true" /> : <Menu aria-hidden="true" />}
+            </Button>
+            <div className="lg:hidden">
+              <BrandMark />
+            </div>
           </div>
           <div className="hidden text-sm text-muted-foreground lg:block">
             Access Control &amp; Management
           </div>
           <UserSection onLoggedOut={() => router.replace("/login")} />
         </header>
+
+        {mobileNavOpen && (
+          <div
+            id="mobile-navigation"
+            className="border-b bg-card/60 px-4 py-2 backdrop-blur lg:hidden"
+          >
+            <SidebarNav onNavigate={() => setMobileNavOpen(false)} />
+          </div>
+        )}
+
         <main className="flex-1 p-4 sm:p-6">{children}</main>
       </div>
     </div>

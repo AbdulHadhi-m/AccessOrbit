@@ -1,0 +1,166 @@
+"use client";
+
+import { useState } from "react";
+import { Plus } from "lucide-react";
+import { toast } from "sonner";
+import { PageHeader } from "@/components/page-header";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { SearchInput } from "@/components/data-table/search-input";
+import { SelectFilter } from "@/components/data-table/select-filter";
+import { PaginationControls } from "@/components/data-table/pagination";
+import { ConfirmDialog } from "@/components/confirm-dialog";
+import { PERMISSIONS } from "@/config/permissions";
+import { useSession } from "@/hooks/use-session";
+import { useDebouncedValue } from "@/hooks/use-debounced-value";
+import { invalidate } from "@/lib/query/query-client";
+import { toErrorMessage } from "@/lib/errors";
+import { modulesService } from "../service";
+import { useModulesList } from "../hooks";
+import { ModulesTable } from "./modules-table";
+import { ModuleFormDialog } from "./module-form-dialog";
+import type { ModuleDto } from "@/types/rbac";
+
+type DialogState =
+  | { kind: "create" }
+  | { kind: "edit"; module: ModuleDto }
+  | { kind: "delete"; module: ModuleDto }
+  | null;
+
+const PAGE_SIZE = 20;
+
+export function ModulesFeature() {
+  const { can } = useSession();
+  const canCreate = can(PERMISSIONS.modules.create);
+  const canUpdate = can(PERMISSIONS.modules.update);
+  const canDelete = can(PERMISSIONS.modules.delete);
+
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebouncedValue(search);
+  const [statusFilter, setStatusFilter] = useState("");
+  const [page, setPage] = useState(1);
+  const [dialog, setDialog] = useState<DialogState>(null);
+
+  const { data, error, status: queryStatus, refetch } = useModulesList({
+    page,
+    limit: PAGE_SIZE,
+    search: debouncedSearch || undefined,
+    status: statusFilter || undefined,
+  });
+
+  const loading = queryStatus === "loading";
+
+  const handleToggleStatus = async (module: ModuleDto) => {
+    try {
+      await modulesService.update(module.id, { active: !module.active });
+      toast.success(module.active ? "Module deactivated" : "Module activated");
+      invalidate("modules", "modules:hierarchy");
+    } catch (error) {
+      toast.error(toErrorMessage(error, "Unable to update the module's status."));
+    }
+  };
+
+  const handleDelete = async (module: ModuleDto) => {
+    try {
+      await modulesService.remove(module.id);
+      toast.success("Module deleted");
+      invalidate("modules", "modules:hierarchy");
+    } catch (error) {
+      toast.error(toErrorMessage(error, "Unable to delete the module."));
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <PageHeader
+        title="Modules"
+        description="Modules are the top level of the permission hierarchy."
+      >
+        {canCreate && (
+          <Button onClick={() => setDialog({ kind: "create" })}>
+            <Plus className="size-4" aria-hidden="true" />
+            Create module
+          </Button>
+        )}
+      </PageHeader>
+
+      <Card>
+        <CardContent className="space-y-3 p-4">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <SearchInput
+              value={search}
+              onChange={(value) => {
+                setSearch(value);
+                setPage(1);
+              }}
+              placeholder="Search modules..."
+            />
+            <SelectFilter
+              value={statusFilter}
+              onValueChange={(value) => {
+                setStatusFilter(value === "__all__" ? "" : value);
+                setPage(1);
+              }}
+              options={[
+                { value: "active", label: "Active" },
+                { value: "inactive", label: "Inactive" },
+              ]}
+              placeholder="Status"
+              ariaLabel="Filter by status"
+            />
+          </div>
+
+          <div className="rounded-lg border">
+            <ModulesTable
+              data={data?.items ?? []}
+              loading={loading}
+              error={error}
+              onRetry={refetch}
+              canUpdate={canUpdate}
+              canDelete={canDelete}
+              onEdit={(module) => setDialog({ kind: "edit", module })}
+              onToggleStatus={(module) => void handleToggleStatus(module)}
+              onDelete={(module) => setDialog({ kind: "delete", module })}
+            />
+          </div>
+
+          <PaginationControls
+            page={page}
+            totalPages={data?.totalPages ?? 1}
+            total={data?.total ?? 0}
+            limit={PAGE_SIZE}
+            onPageChange={setPage}
+            disabled={loading}
+          />
+        </CardContent>
+      </Card>
+
+      {dialog?.kind === "create" && (
+        <ModuleFormDialog open onOpenChange={(open) => !open && setDialog(null)} module={null} />
+      )}
+      {dialog?.kind === "edit" && (
+        <ModuleFormDialog
+          open
+          onOpenChange={(open) => !open && setDialog(null)}
+          module={dialog.module}
+        />
+      )}
+      {dialog?.kind === "delete" && (
+        <ConfirmDialog
+          open
+          onOpenChange={(open) => !open && setDialog(null)}
+          title="Delete module"
+          description={
+            <>
+              Are you sure you want to delete{" "}
+              <span className="font-medium">{dialog.module.name}</span>? Modules referenced by
+              sub-modules, operations, or permissions cannot be deleted.
+            </>
+          }
+          confirmLabel="Delete module"
+          onConfirm={() => handleDelete(dialog.module)}
+        />
+      )}
+    </div>
+  );
+}
