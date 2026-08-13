@@ -18,6 +18,7 @@ import { subModuleRouter } from "./modules/modules/sub-module.routes.js";
 import { operationRouter } from "./modules/modules/operation.routes.js";
 import { permissionRouter } from "./modules/permissions/permission.routes.js";
 import { auditRouter } from "./modules/audit/audit.routes.js";
+import { searchRouter } from "./modules/search/search.routes.js";
 import { docsRouter } from "./modules/docs/docs.routes.js";
 
 export const app = express();
@@ -51,6 +52,7 @@ app.use(`${API_PREFIX}/sub-modules`, subModuleRouter);
 app.use(`${API_PREFIX}/operations`, operationRouter);
 app.use(`${API_PREFIX}/permissions`, permissionRouter);
 app.use(`${API_PREFIX}/audit-logs`, auditRouter);
+app.use(`${API_PREFIX}/search`, searchRouter);
 app.use(`${API_PREFIX}/docs`, docsRouter);
 
 app.use(notFoundHandler);

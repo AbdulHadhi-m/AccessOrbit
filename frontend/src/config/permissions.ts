@@ -44,6 +44,51 @@ export const PERMISSIONS = {
   audit: {
     view: "audit.view",
   },
+  employee: {
+    view: "employee.employees.view",
+    create: "employee.employees.create",
+    update: "employee.employees.update",
+    delete: "employee.employees.delete",
+  },
+  departments: {
+    view: "employee.departments.view",
+    create: "employee.departments.create",
+    update: "employee.departments.update",
+  },
+  attendance: {
+    view: "attendance.records.view",
+    create: "attendance.records.create",
+    approve: "attendance.records.approve",
+  },
+  leave: {
+    view: "leave.requests.view",
+    apply: "leave.requests.apply",
+    approve: "leave.requests.approve",
+    reject: "leave.requests.reject",
+  },
 } as const;
 
 export type PermissionKey = (typeof PERMISSIONS)[keyof typeof PERMISSIONS][keyof (typeof PERMISSIONS)[keyof typeof PERMISSIONS]];
+
+/** RBAC administration permissions — used for admin dashboard sections and navigation. */
+export const RBAC_ADMIN_PERMISSIONS = [
+  PERMISSIONS.users.view,
+  PERMISSIONS.roles.view,
+  PERMISSIONS.modules.view,
+  PERMISSIONS.permissions.view,
+  PERMISSIONS.audit.view,
+] as const;
+
+/** Mutation permission suffixes — users with only view permissions are read-only. */
+export const MUTATION_OPERATIONS = new Set([
+  "create",
+  "update",
+  "delete",
+  "assign",
+  "remove",
+  "assign-roles",
+  "assign-permissions",
+  "apply",
+  "approve",
+  "reject",
+]);

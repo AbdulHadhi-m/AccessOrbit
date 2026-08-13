@@ -5,6 +5,7 @@ import { ConflictError, NotFoundError, ValidationError } from "../../shared/erro
 import { paginationMeta, parseSort } from "../../shared/utils/pagination.js";
 import { BCRYPT_COST } from "../auth/auth.service.js";
 import { tokenService } from "../auth/token.service.js";
+import { permissionResolutionService } from "../authorization/permission-resolution.service.js";
 import { roleRepository } from "../roles/role.repository.js";
 import { userRepository } from "./user.repository.js";
 
@@ -92,7 +93,9 @@ export const userService = {
     if (!user) {
       throw new NotFoundError("User not found");
     }
-    return toUserDto(user as unknown as Record<string, unknown>);
+    const dto = toUserDto(user as unknown as Record<string, unknown>);
+    const { permissions } = await permissionResolutionService.resolvePermissionsForUser(id);
+    return { ...dto, effectivePermissions: permissions };
   },
 
   async listUsers(input: ListUsersInput) {

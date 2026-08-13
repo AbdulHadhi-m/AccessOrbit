@@ -30,6 +30,41 @@ export interface SeedRoleDefinition {
 export const SUPER_ADMIN_ROLE_SLUG = "super-administrator";
 export const DEMO_ROLE_SLUG = "hr-manager";
 
+export interface SeedDemoUserDefinition {
+  email: string;
+  name: string;
+  roleSlug: string;
+}
+
+/** Development/demo accounts — one per example business role (excluding super admin). */
+export const SEED_DEMO_USERS: SeedDemoUserDefinition[] = [
+  {
+    email: "hr@accessorbit.local",
+    name: "Alex Chen",
+    roleSlug: "hr-manager",
+  },
+  {
+    email: "manager@accessorbit.local",
+    name: "Jordan Rivera",
+    roleSlug: "department-manager",
+  },
+  {
+    email: "lead@accessorbit.local",
+    name: "Sam Patel",
+    roleSlug: "team-lead",
+  },
+  {
+    email: "employee@accessorbit.local",
+    name: "Taylor Brooks",
+    roleSlug: "employee",
+  },
+  {
+    email: "auditor@accessorbit.local",
+    name: "Morgan Lee",
+    roleSlug: "auditor",
+  },
+];
+
 const op = (key: string, name: string, order: number): SeedOperationDefinition => ({
   key,
   name,

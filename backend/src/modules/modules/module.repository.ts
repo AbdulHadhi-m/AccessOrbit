@@ -88,4 +88,16 @@ export const moduleRepository = {
     const result = await ModuleModel.deleteOne({ _id: id }).exec();
     return result.deletedCount === 1;
   },
+
+  search({ query, limit }: { query: RegExp; limit?: number }) {
+    const filter: FilterQuery<Module> = {
+      active: true,
+      $or: [{ name: query }, { key: query }, { description: query }],
+    };
+    return ModuleModel.find(filter)
+      .sort({ order: 1 })
+      .limit(limit || 5)
+      .lean()
+      .exec();
+  },
 };

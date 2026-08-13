@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, LogOut, UserRound } from "lucide-react";
+import { Loader2, LogOut, Sun, Moon, Monitor, UserRound } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,6 +14,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useSession } from "@/hooks/use-session";
+import { cn } from "@/lib/utils";
+import { useTheme } from "next-themes";
 
 function getInitials(name: string): string {
   return name
@@ -26,6 +28,7 @@ function getInitials(name: string): string {
 export function UserMenu() {
   const router = useRouter();
   const { user, logout } = useSession();
+  const { theme, setTheme } = useTheme();
   const [loggingOut, setLoggingOut] = useState(false);
 
   if (!user) return null;
@@ -77,6 +80,38 @@ export function UserMenu() {
             ))}
           </>
         )}
+        <DropdownMenuSeparator />
+        <DropdownMenuLabel className="text-xs text-muted-foreground">Theme</DropdownMenuLabel>
+        <DropdownMenuItem onClick={() => setTheme("light")} className="cursor-pointer">
+          <Sun
+            className={cn(
+              "size-4 mr-2",
+              theme === "light" ? "text-foreground" : "text-muted-foreground"
+            )}
+            aria-hidden="true"
+          />
+          Light
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme("dark")} className="cursor-pointer">
+          <Moon
+            className={cn(
+              "size-4 mr-2",
+              theme === "dark" ? "text-foreground" : "text-muted-foreground"
+            )}
+            aria-hidden="true"
+          />
+          Dark
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme("system")} className="cursor-pointer">
+          <Monitor
+            className={cn(
+              "size-4 mr-2",
+              theme === "system" ? "text-foreground" : "text-muted-foreground"
+            )}
+            aria-hidden="true"
+          />
+          System
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
           variant="destructive"

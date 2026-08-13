@@ -12,6 +12,7 @@ import {
   KeyRound,
   LayoutDashboard,
   Menu,
+  Search,
   Shield,
   ShieldCheck,
   Users,
@@ -23,6 +24,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { PageBreadcrumb, getRouteBreadcrumbs } from "@/components/page-breadcrumb";
 import { UserMenu } from "@/components/user-menu";
+import { SearchDialog } from "@/components/ui/search-dialog";
 import { PERMISSIONS } from "@/config/permissions";
 import { env } from "@/config/env";
 import { usePermission } from "@/hooks/use-permission";
@@ -30,6 +32,22 @@ import { useSession } from "@/hooks/use-session";
 import { cn } from "@/lib/utils";
 
 const SIDEBAR_STORAGE_KEY = "accessorbit-sidebar-collapsed";
+const SEARCH_SHORTCUT_KEY = "k";
+
+function SearchButton({ onClick }: { onClick?: () => void }) {
+  return (
+    <Button
+      variant="ghost"
+      size="sm"
+      onClick={onClick}
+      className="hidden h-8 gap-1.5 px-2 text-muted-foreground transition-colors hover:bg-muted md:flex"
+      aria-label="Global search"
+    >
+      <Search className="size-4" aria-hidden="true" />
+      <span className="text-sm">Search</span>
+    </Button>
+  );
+}
 
 const navItems = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard, permission: null },
@@ -234,12 +252,28 @@ export function DashboardShell({ children }: { children: ReactNode }) {
     return localStorage.getItem(SIDEBAR_STORAGE_KEY) === "true";
   });
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
 
   useEffect(() => {
     if (status === "unauthenticated") {
       router.replace("/login?redirect=/dashboard");
     }
   }, [status, router]);
+
+  useEffect(() => {
+    const down = (e: globalThis.KeyboardEvent) => {
+      if (e.key === SEARCH_SHORTCUT_KEY && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        setSearchOpen((open) => !open);
+      }
+      if (e.key === "Escape" && searchOpen) {
+        setSearchOpen(false);
+      }
+    };
+
+    document.addEventListener("keydown", down);
+    return () => document.removeEventListener("keydown", down);
+  }, [searchOpen]);
 
   const toggleCollapsed = () => {
     setCollapsed((current) => {
@@ -313,13 +347,18 @@ export function DashboardShell({ children }: { children: ReactNode }) {
               {breadcrumbs[breadcrumbs.length - 1]?.label}
             </span>
           </div>
-          <UserMenu />
+          <div className="flex items-center gap-2">
+            <SearchButton onClick={() => setSearchOpen(true)} />
+            <UserMenu />
+          </div>
         </header>
 
         <main className="flex-1 p-4 sm:p-6">
           <div className="page-container">{children}</div>
         </main>
       </div>
+
+      <SearchDialog isOpen={searchOpen} onOpenChange={setSearchOpen} />
 
       <Sheet open={mobileNavOpen} onOpenChange={setMobileNavOpen}>
         <SheetContent side="left" className="w-72 border-sidebar-border bg-sidebar p-0">

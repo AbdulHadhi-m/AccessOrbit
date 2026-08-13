@@ -11,6 +11,7 @@ import { userRepository } from "../../modules/users/user.repository.js";
 import {
   SEED_MODULES,
   SEED_ROLES,
+  SEED_DEMO_USERS,
   SUPER_ADMIN_ROLE_SLUG,
   DEMO_ROLE_SLUG,
 } from "./data.js";
@@ -24,6 +25,7 @@ export interface SeedSummary {
   rolePermissions: number;
   adminUser: "created" | "updated" | "skipped";
   demoUser: "created" | "skipped";
+  demoUsers: { created: number; updated: number; skipped: number };
 }
 
 const BCRYPT_COST = 12;
@@ -148,6 +150,35 @@ export async function runSeed(): Promise<SeedSummary> {
     }
   }
 
+  logger.info("Seeding role demo users...");
+  const demoUsers = { created: 0, updated: 0, skipped: 0 };
+  if (env.SEED_DEMO_PASSWORD) {
+    const passwordHash = await bcrypt.hash(env.SEED_DEMO_PASSWORD, BCRYPT_COST);
+    for (const demoDef of SEED_DEMO_USERS) {
+      const role = await roleService.ensureRole({
+        slug: demoDef.roleSlug,
+        name: SEED_ROLES.find((item) => item.slug === demoDef.roleSlug)?.name ?? demoDef.roleSlug,
+        description:
+          SEED_ROLES.find((item) => item.slug === demoDef.roleSlug)?.description ?? "",
+        isSystem: true,
+      });
+      const existing = await userRepository.findByEmail(demoDef.email);
+      await userRepository.upsertByEmail({
+        name: demoDef.name,
+        email: demoDef.email,
+        passwordHash,
+        roleIds: [role._id],
+      });
+      if (existing) {
+        demoUsers.updated += 1;
+      } else {
+        demoUsers.created += 1;
+      }
+    }
+  } else {
+    demoUsers.skipped = SEED_DEMO_USERS.length;
+  }
+
   return {
     modules,
     subModules,
@@ -157,5 +188,6 @@ export async function runSeed(): Promise<SeedSummary> {
     rolePermissions,
     adminUser,
     demoUser,
+    demoUsers,
   };
 }

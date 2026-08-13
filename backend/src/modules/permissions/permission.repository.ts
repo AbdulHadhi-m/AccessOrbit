@@ -129,4 +129,16 @@ export const permissionRepository = {
       { upsert: true, new: true, runValidators: true }
     ).exec();
   },
+
+  search({ query, limit }: { query: RegExp; limit?: number }) {
+    const filter: FilterQuery<Permission> = {
+      active: true,
+      $or: [{ key: query }, { name: query }, { description: query }],
+    };
+    return PermissionModel.find(filter)
+      .sort({ key: 1 })
+      .limit(limit || 5)
+      .lean()
+      .exec();
+  },
 };

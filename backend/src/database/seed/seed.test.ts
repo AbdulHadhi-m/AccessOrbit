@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { clearTestDb, connectTestDb, disconnectTestDb } from "../../database/test-db.js";
 import { runSeed } from "./seed.js";
-import { SEED_MODULES, SEED_ROLES } from "./data.js";
+import { SEED_MODULES, SEED_ROLES, SEED_DEMO_USERS } from "./data.js";
 import {
   ModuleModel,
   SubModuleModel,
@@ -53,7 +53,7 @@ describe("seed system", () => {
     expect(await ModuleModel.countDocuments()).toBe(SEED_MODULES.length);
     expect(await PermissionModel.countDocuments()).toBe(expectedPermissions);
     expect(await RoleModel.countDocuments()).toBe(SEED_ROLES.length);
-    expect(await UserModel.countDocuments()).toBe(2);
+    expect(await UserModel.countDocuments()).toBe(1 + SEED_DEMO_USERS.length + 1);
   });
 
   it("is idempotent: running twice produces no duplicates", async () => {
@@ -76,7 +76,7 @@ describe("seed system", () => {
     expect(await OperationModel.countDocuments()).toBe(expectedPermissions);
     expect(await PermissionModel.countDocuments()).toBe(expectedPermissions);
     expect(await RoleModel.countDocuments()).toBe(SEED_ROLES.length);
-    expect(await UserModel.countDocuments()).toBe(2);
+    expect(await UserModel.countDocuments()).toBe(1 + SEED_DEMO_USERS.length + 1);
   });
 
   it("assigns every permission to the super administrator role", async () => {
