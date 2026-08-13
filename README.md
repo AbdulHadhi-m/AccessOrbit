@@ -202,6 +202,77 @@ All administrative API endpoints are prefixed with `/api/v1` and protected by `r
 
 ---
 
+## Database Design
+
+AccessOrbit utilizes MongoDB with Mongoose ODM, leveraging document embedding for high-locality data and normalized references for dynamic relational integrity.
+
+### 1. Collections & Schema Architecture
+
+- **`users`**: User identity accounts, bcrypt password hashes, status (`active` | `suspended`), and assigned `roleIds` array.
+- **`roles`**: Role definitions, unique kebab-case `slug`, `isSystem` protection flag, and `active` state.
+- **`role_permissions`**: Normalized mapping junction between a `roleId` and a `permissionKey` with an `enabled` toggle.
+- **`modules`**: Top-level application domains (e.g., `rbac`, `employee`), display order, and Lucide icon identifier.
+- **`sub_modules`**: Secondary domain categories referencing a parent `moduleId`.
+- **`operations`**: Action capability categories referencing a `moduleId` and an optional `subModuleId`.
+- **`permissions`**: Granular permission codes (e.g., `rbac.users.create`) referencing parent `moduleId` and `operationId`.
+- **`audit_logs`**: Immutable security event records capturing actor, action, category, target, sanitized payload details, status, IP, user-agent, and request ID.
+- **`refresh_tokens`**: Opaque SHA-256 hashed session refresh tokens with token family lineage for reuse detection.
+
+### 2. Indexing Strategy
+
+- **Unique Indexes**: `users.email`, `roles.slug`, `modules.key`, `permissions.key`, and compound unique index on `(roleId, permissionKey)`.
+- **Foreign Key Indexing**: `sub_modules.moduleId`, `operations.moduleId`, `operations.subModuleId`, `permissions.operationId`.
+- **Time-Series & Query Indexes on `audit_logs`**:
+  - `{ createdAt: -1 }` (Descending chronological sort)
+  - `{ action: 1, createdAt: -1 }` (Action filter with date sort)
+  - `{ category: 1, createdAt: -1 }` (Category filter with date sort)
+  - `{ "actor.id": 1, createdAt: -1 }` (Actor filter with date sort)
+
+---
+
+## Design Decisions
+
+### 1. Runtime Dynamic Permission Resolution vs. Token Claims
+* **Decision**: Resolve effective permissions from the database on each request via `requirePermission()` rather than embedding permissions in JWT access tokens.
+* **Rationale**: Embedding permissions inside JWT claims leads to stale authorization states. If an administrator revokes access or suspends an account, the user would retain access until their token expires. AccessOrbit's database resolution guarantees immediate zero-latency revocation across all nodes.
+
+### 2. 4-Tier RBAC Hierarchy Model
+* **Decision**: Organize authorization into `Module` → `Sub-Module` → `Operation` → `Permission`.
+* **Rationale**: Complex enterprise permissions quickly become unmanageable in flat lists. A hierarchical tree provides intuitive mental models for administrators, enables bulk domain inspection, and allows clean UI grouping while keeping permission checks atomic (e.g., `rbac.users.create`).
+
+### 3. Dual-Token Architecture with In-Memory Storage
+* **Decision**: Store short-lived (15-min) JWT access tokens strictly in memory on the client and issue rotating `HttpOnly`, `Secure`, `SameSite` refresh cookies.
+* **Rationale**: Storing tokens in `localStorage` or `sessionStorage` leaves applications vulnerable to Cross-Site Scripting (XSS) token exfiltration. In-memory storage prevents storage inspection, while automatic single-flight refresh provides seamless user experience.
+
+### 4. Modular Monolith Architecture
+* **Decision**: Structure the backend as a single deployable TypeScript modular monolith with encapsulated feature modules (`src/modules/*`) and layered internal boundaries.
+* **Rationale**: Eliminates the operational overhead, network latency, distributed transaction complexities, and deployment orchestration of microservices while preserving strict domain boundaries and independent modularity.
+
+### 5. Non-Blocking, Sanitized Audit Logging
+* **Decision**: Execute audit log persistence asynchronously after response dispatch, with recursive field redaction.
+* **Rationale**: Security compliance should never degrade API latency. Non-blocking logging maintains peak throughput, and recursive sanitization guarantees that passwords and tokens are never written to disk.
+
+---
+
+## Assumptions
+
+1. **Enterprise Single-Tenant Boundary**: The current platform is architected for single-organization internal administrative and operational access control.
+2. **MongoDB Replica Set Support**: Assumes MongoDB 6.0+ with replica set capability (required for distributed production environments).
+3. **Modern Browser Cookie Standards**: Assumes clients support `HttpOnly`, `SameSite=Lax`/`SameSite=None`, and `Secure` cookie attributes over HTTPS.
+4. **Unique Email Identity**: User accounts are uniquely identified and authenticated by primary email address.
+
+---
+
+## Future Improvements
+
+- [ ] **Redis Caching Layer with Generation Stamping**: Implement an invalidation-aware Redis cache inside `permissionResolutionService` to achieve sub-millisecond permission resolution under 100k+ concurrent requests.
+- [ ] **Multi-Tenant Workspace Partitioning**: Introduce `tenantId` sharding keys across all database collections to support multi-tenant SaaS deployments.
+- [ ] **Enterprise SSO (SAML 2.0 / OIDC / OAuth2)**: Add native integrations for Google Workspace, Microsoft Azure AD, and Okta single sign-on.
+- [ ] **Attribute-Based Access Control (ABAC)**: Extend permission guards with contextual attribute evaluations (e.g., department matching, IP geofencing, working hour restrictions).
+- [ ] **Real-Time Security Webhooks & Alerts**: Outbound webhooks and email/Slack alerting triggered on critical events (e.g. repeated brute-force login attempts, super-admin role changes).
+
+---
+
 ## Testing & Quality Assurance
 
 AccessOrbit includes automated unit and integration tests across both the backend and frontend:
@@ -234,3 +305,4 @@ npm run build
 ## License
 
 Private and proprietary. Designed and maintained for enterprise access control governance.
+

@@ -1,9 +1,5 @@
 # AccessOrbit — Documentation
 
-Architecture and design documents for AccessOrbit.
+Comprehensive architectural design and engineering documentation for AccessOrbit.
 
-- `architecture.md` — system architecture & technical blueprint (planned)
-- `api.md` — REST API reference (planned)
-- `rbac-guide.md` — dynamic RBAC administration guide (planned)
-
-Documents are written during their corresponding implementation phases.
+- [**System Architecture & Technical Blueprint**](./ARCHITECTURE.md) — Detailed overview of the modular monolith backend, dynamic RBAC resolution engine, dual-token auth lifecycle, database schemas, and frontend architecture.
