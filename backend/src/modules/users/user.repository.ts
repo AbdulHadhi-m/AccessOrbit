@@ -18,6 +18,14 @@ export const userRepository = {
     return UserModel.findOne({ email: email.toLowerCase() }).lean().exec();
   },
 
+  findByEmailWithPassword(email: string) {
+    return UserModel.findOne({ email: email.toLowerCase() }).select("+passwordHash").lean().exec();
+  },
+
+  updateLastLogin(id: string | Types.ObjectId) {
+    return UserModel.updateOne({ _id: id }, { $set: { lastLoginAt: new Date() } }).exec();
+  },
+
   create(input: CreateUserInput) {
     return UserModel.create(input);
   },
@@ -40,5 +48,9 @@ export const userRepository = {
 
   countByRole(roleId: string | Types.ObjectId) {
     return UserModel.countDocuments({ roleIds: roleId }).exec();
+  },
+
+  setStatus(id: string | Types.ObjectId, status: UserStatus) {
+    return UserModel.updateOne({ _id: id }, { $set: { status } }).exec();
   },
 };

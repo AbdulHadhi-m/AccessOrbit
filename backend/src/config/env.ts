@@ -20,6 +20,8 @@ const envSchema = z.object({
     .default("info"),
   SEED_ADMIN_EMAIL: z.string().email().optional(),
   SEED_ADMIN_PASSWORD: z.string().min(8).optional(),
+  SEED_DEMO_EMAIL: z.string().email().optional(),
+  SEED_DEMO_PASSWORD: z.string().min(8).optional(),
 });
 
 const parsed = envSchema.safeParse(process.env);

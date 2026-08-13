@@ -28,6 +28,7 @@ export interface SeedRoleDefinition {
 }
 
 export const SUPER_ADMIN_ROLE_SLUG = "super-administrator";
+export const DEMO_ROLE_SLUG = "hr-manager";
 
 const op = (key: string, name: string, order: number): SeedOperationDefinition => ({
   key,

@@ -48,10 +48,12 @@ describe("seed system", () => {
     expect(summary.permissions).toBe(expectedPermissions);
     expect(summary.roles).toBe(SEED_ROLES.length);
     expect(summary.adminUser).toBe("created");
+    expect(summary.demoUser).toBe("created");
 
     expect(await ModuleModel.countDocuments()).toBe(SEED_MODULES.length);
     expect(await PermissionModel.countDocuments()).toBe(expectedPermissions);
     expect(await RoleModel.countDocuments()).toBe(SEED_ROLES.length);
+    expect(await UserModel.countDocuments()).toBe(2);
   });
 
   it("is idempotent: running twice produces no duplicates", async () => {
@@ -65,6 +67,7 @@ describe("seed system", () => {
     expect(second.roles).toBe(first.roles);
     expect(second.rolePermissions).toBe(first.rolePermissions);
     expect(second.adminUser).toBe("updated");
+    expect(second.demoUser).toBe("skipped");
 
     expect(await ModuleModel.countDocuments()).toBe(SEED_MODULES.length);
     expect(await SubModuleModel.countDocuments()).toBe(
@@ -73,7 +76,7 @@ describe("seed system", () => {
     expect(await OperationModel.countDocuments()).toBe(expectedPermissions);
     expect(await PermissionModel.countDocuments()).toBe(expectedPermissions);
     expect(await RoleModel.countDocuments()).toBe(SEED_ROLES.length);
-    expect(await UserModel.countDocuments()).toBe(1);
+    expect(await UserModel.countDocuments()).toBe(2);
   });
 
   it("assigns every permission to the super administrator role", async () => {

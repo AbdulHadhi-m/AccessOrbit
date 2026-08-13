@@ -4,7 +4,7 @@
 
 New modules, sub-modules, operations, permissions, roles, and role assignments are managed as data through the application — no authorization code changes required.
 
-> **Status: Phase 2 (Database & RBAC Core)** — project skeleton, backend infrastructure, and the full dynamic RBAC data layer (models, repositories, services, permission resolution, idempotent seed) are implemented. Authentication and RBAC administration APIs arrive in later phases.
+> **Status: Phase 3 (Authentication)** — full secure authentication is implemented: JWT access tokens (15 min), rotating httpOnly-cookie refresh tokens (7 days, hashed at rest, family revocation + reuse detection), login/logout/refresh/me, `requireAuth` middleware, timing-safe credential checks, and a seeded demo user. RBAC authorization middleware arrives next.
 
 ## Architecture Summary
 
@@ -72,11 +72,13 @@ AccessOrbit/
    | `PORT` | API port (default 4000) |
    | `MONGODB_URI` | MongoDB connection string |
    | `FRONTEND_URL` | Frontend origin (used for CORS) |
-   | `JWT_ACCESS_SECRET` | ≥ 32 chars (used in later auth phase) |
-   | `JWT_REFRESH_SECRET` | ≥ 32 chars, different from access (later phase) |
+   | `JWT_ACCESS_SECRET` | ≥ 32 chars — signs 15-minute access tokens |
+   | `JWT_REFRESH_SECRET` | ≥ 32 chars, different from access — reserved for future use |
    | `LOG_LEVEL` | `info` default |
    | `SEED_ADMIN_EMAIL` | Optional — email for the seeded super administrator |
    | `SEED_ADMIN_PASSWORD` | Optional — password for the seeded super administrator (min 8 chars) |
+   | `SEED_DEMO_EMAIL` | Optional — email for the seeded demo user (created only if absent) |
+   | `SEED_DEMO_PASSWORD` | Optional — password for the seeded demo user (min 8 chars) |
 
 2. **Frontend** — optional; defaults to `http://localhost:4000`:
 
@@ -86,16 +88,27 @@ AccessOrbit/
 
 ## Seeding the Database
 
-Creates the RBAC hierarchy (modules, sub-modules, operations, permissions), the six system roles, role-permission assignments, and the super administrator user. Safe to run repeatedly:
+Creates the RBAC hierarchy (modules, sub-modules, operations, permissions), the six system roles, role-permission assignments, the super administrator, and (when configured) a demo user with the HR Manager role. Safe to run repeatedly:
 
 ```bash
 npm run seed
 ```
 
+## Authentication
+
+| Endpoint | Description |
+|---|---|
+| `POST /api/v1/auth/login` | Email + password → access token (body) + refresh token (httpOnly cookie) |
+| `POST /api/v1/auth/refresh` | Rotates the refresh token and issues a new access token |
+| `POST /api/v1/auth/logout` | Revokes the refresh-token family and clears the cookie |
+| `GET /api/v1/auth/me` | Current user (requires `Authorization: Bearer <accessToken>`) |
+
+Access tokens expire after 15 minutes and contain only `sub`/`type`/`jti` — permissions are never embedded and are resolved from the RBAC system per request. Refresh tokens are opaque, stored SHA-256 hashed, rotated on every refresh, revoked on logout, and guarded by reuse detection (reusing a rotated token revokes the entire session family).
+
 ## Tests
 
 ```bash
-npm test    # RBAC core tests (uses a separate accessorbit_test database)
+npm test    # auth + RBAC core tests (uses a separate accessorbit_test database)
 ```
 
 ## Installation

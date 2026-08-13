@@ -9,6 +9,8 @@ export default defineConfig({
       MONGODB_URI: "mongodb://localhost:27017/accessorbit_test",
       SEED_ADMIN_EMAIL: "admin@accessorbit.test",
       SEED_ADMIN_PASSWORD: "TestAdminPass123!",
+      SEED_DEMO_EMAIL: "demo@accessorbit.test",
+      SEED_DEMO_PASSWORD: "TestDemoPass123!",
     },
     testTimeout: 15_000,
     hookTimeout: 30_000,

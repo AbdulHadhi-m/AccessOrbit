@@ -5,6 +5,7 @@ import { SubModuleModel } from "./sub-module.model.js";
 import { OperationModel } from "./operation.model.js";
 import { PermissionModel } from "./permission.model.js";
 import { RolePermissionModel } from "./role-permission.model.js";
+import { RefreshTokenModel } from "./refresh-token.model.js";
 
 export {
   UserModel,
@@ -14,6 +15,7 @@ export {
   OperationModel,
   PermissionModel,
   RolePermissionModel,
+  RefreshTokenModel,
 };
 
 export { USER_STATUSES } from "./user.model.js";
@@ -24,6 +26,7 @@ export type { SubModule, SubModuleDocument } from "./sub-module.model.js";
 export type { Operation, OperationDocument } from "./operation.model.js";
 export type { Permission, PermissionDocument } from "./permission.model.js";
 export type { RolePermission, RolePermissionDocument } from "./role-permission.model.js";
+export type { RefreshToken, RefreshTokenDocument } from "./refresh-token.model.js";
 
 export const ALL_MODELS = [
   UserModel,
@@ -33,4 +36,5 @@ export const ALL_MODELS = [
   OperationModel,
   PermissionModel,
   RolePermissionModel,
+  RefreshTokenModel,
 ];

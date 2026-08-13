@@ -12,6 +12,7 @@ import {
   SEED_MODULES,
   SEED_ROLES,
   SUPER_ADMIN_ROLE_SLUG,
+  DEMO_ROLE_SLUG,
 } from "./data.js";
 
 export interface SeedSummary {
@@ -22,6 +23,7 @@ export interface SeedSummary {
   roles: number;
   rolePermissions: number;
   adminUser: "created" | "updated" | "skipped";
+  demoUser: "created" | "skipped";
 }
 
 const BCRYPT_COST = 12;
@@ -123,5 +125,37 @@ export async function runSeed(): Promise<SeedSummary> {
     adminUser = existing ? "updated" : "created";
   }
 
-  return { modules, subModules, operations, permissions, roles, rolePermissions, adminUser };
+  logger.info("Seeding demo user...");
+  let demoUser: SeedSummary["demoUser"] = "skipped";
+  if (env.SEED_DEMO_EMAIL && env.SEED_DEMO_PASSWORD) {
+    const demoRole = await roleService.ensureRole({
+      slug: DEMO_ROLE_SLUG,
+      name: "HR Manager",
+      description: "Manages employee records and leave approvals",
+      isSystem: true,
+    });
+    const existing = await userRepository.findByEmail(env.SEED_DEMO_EMAIL);
+    if (!existing) {
+      const passwordHash = await bcrypt.hash(env.SEED_DEMO_PASSWORD, BCRYPT_COST);
+      await userRepository.create({
+        name: "Demo User",
+        email: env.SEED_DEMO_EMAIL,
+        passwordHash,
+        roleIds: [demoRole._id],
+        status: "active",
+      });
+      demoUser = "created";
+    }
+  }
+
+  return {
+    modules,
+    subModules,
+    operations,
+    permissions,
+    roles,
+    rolePermissions,
+    adminUser,
+    demoUser,
+  };
 }
