@@ -89,17 +89,22 @@ function BrandMark({ collapsed = false }: { collapsed?: boolean }) {
     <Link
       href="/dashboard"
       className={cn(
-        "flex items-center gap-2.5 transition-opacity hover:opacity-90",
+        "flex items-center gap-3 transition-opacity hover:opacity-90",
         collapsed && "justify-center"
       )}
     >
-      <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-        <ShieldCheck className="size-4" aria-hidden="true" />
+      <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-[#6B38C3] text-white shadow-md shadow-purple-500/25">
+        <ShieldCheck className="size-5" aria-hidden="true" />
       </span>
       {!collapsed && (
-        <span className="truncate text-base font-semibold tracking-tight text-sidebar-foreground">
-          AccessOrbit
-        </span>
+        <div className="min-w-0">
+          <span className="block truncate text-base font-bold tracking-tight text-sidebar-foreground">
+            AccessOrbit
+          </span>
+          <span className="block truncate text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">
+            Operations Hub
+          </span>
+        </div>
       )}
     </Link>
   );
@@ -118,17 +123,17 @@ function NavLink({
 }) {
   const Icon = item.icon;
   const className = cn(
-    "group flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors",
-    collapsed && "justify-center px-2",
+    "group flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all duration-150",
+    collapsed && "justify-center px-2.5",
     active
-      ? "bg-sidebar-accent font-medium text-sidebar-accent-foreground"
-      : "text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground"
+      ? "bg-[#6B38C3] text-white font-semibold shadow-md shadow-purple-500/25"
+      : "text-sidebar-foreground/75 hover:bg-sidebar-accent/80 hover:text-sidebar-accent-foreground"
   );
 
   const content = (
     <>
       <Icon
-        className={cn("size-4 shrink-0", active && "text-sidebar-primary")}
+        className={cn("size-4 shrink-0 transition-transform duration-150 group-hover:scale-110", active ? "text-white" : "text-sidebar-foreground/60")}
         aria-hidden="true"
       />
       {!collapsed && <span className="truncate">{item.label}</span>}

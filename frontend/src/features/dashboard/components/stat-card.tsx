@@ -14,23 +14,11 @@ interface StatCardProps {
   accent?: "default" | "success" | "warning" | "destructive";
 }
 
-const ACCENT_STYLES = {
-  default: {
-    bg: "bg-primary/10 text-primary group-hover:scale-110 transition-transform duration-200",
-    border: "border-t-2 border-t-primary/60",
-  },
-  success: {
-    bg: "bg-success/15 text-success group-hover:scale-110 transition-transform duration-200",
-    border: "border-t-2 border-t-success/70",
-  },
-  warning: {
-    bg: "bg-warning/15 text-warning group-hover:scale-110 transition-transform duration-200",
-    border: "border-t-2 border-t-warning/70",
-  },
-  destructive: {
-    bg: "bg-destructive/15 text-destructive group-hover:scale-110 transition-transform duration-200",
-    border: "border-t-2 border-t-destructive/70",
-  },
+const ACCENT_GRADIENTS = {
+  default: "from-[#6B38C3] via-[#7C3AED] to-[#4C1D95] text-white shadow-purple-500/20",
+  success: "from-[#6D28D9] via-[#7C3AED] to-[#4338CA] text-white shadow-purple-500/20",
+  warning: "from-[#7E22CE] via-[#6B38C3] to-[#5B21B6] text-white shadow-purple-500/20",
+  destructive: "from-[#5B21B6] via-[#6B38C3] to-[#4C1D95] text-white shadow-purple-500/20",
 };
 
 export function StatCard({
@@ -43,40 +31,38 @@ export function StatCard({
   formatValue = (current) => current.toLocaleString(),
   accent = "default",
 }: StatCardProps) {
-  const style = ACCENT_STYLES[accent];
+  const gradientClass = ACCENT_GRADIENTS[accent];
 
   return (
     <Card
       className={cn(
-        "group relative overflow-hidden transition-all duration-200 hover:-translate-y-1 hover:shadow-lg hover:border-primary/40",
-        style.border
+        "group relative overflow-hidden rounded-2xl border-none bg-gradient-to-br p-1.5 shadow-md transition-all duration-200 hover:-translate-y-1 hover:shadow-xl hover:shadow-purple-500/30",
+        gradientClass
       )}
     >
-      <CardHeader className="flex flex-row items-start justify-between space-y-0 p-4 pb-1">
-        <CardTitle className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+      {/* Subtle watermark background icon */}
+      <Icon className="absolute -right-3 -bottom-3 size-24 text-white/5 transition-transform duration-300 group-hover:scale-110 pointer-events-none" />
+
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4 pb-2">
+        <CardTitle className="text-xs font-semibold uppercase tracking-wider text-white/80">
           {title}
         </CardTitle>
-        <span
-          className={cn(
-            "inline-flex size-8 shrink-0 items-center justify-center rounded-lg",
-            style.bg
-          )}
-        >
+        <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-xl bg-white/20 backdrop-blur-md text-white shadow-xs transition-transform duration-200 group-hover:scale-110">
           <Icon className="size-4" aria-hidden="true" />
         </span>
       </CardHeader>
       <CardContent className="p-4 pt-1">
         {loading ? (
-          <Skeleton className="h-8 w-20 rounded-md" />
+          <Skeleton className="h-8 w-20 bg-white/20 rounded-md" />
         ) : error ? (
-          <p className="text-sm text-muted-foreground">Could not load</p>
+          <p className="text-sm text-white/70">Could not load</p>
         ) : (
-          <p className="text-2xl sm:text-3xl font-extrabold tracking-tight tabular-nums text-foreground">
+          <p className="text-3xl font-extrabold tracking-tight tabular-nums text-white drop-shadow-xs">
             {value !== undefined ? formatValue(value) : "—"}
           </p>
         )}
         {description && (
-          <p className="mt-1 text-xs text-muted-foreground/80 truncate font-medium">
+          <p className="mt-1 text-xs font-medium text-white/75 truncate">
             {description}
           </p>
         )}

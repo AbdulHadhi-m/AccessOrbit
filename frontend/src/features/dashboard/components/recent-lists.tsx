@@ -42,10 +42,10 @@ function RecentList<T extends RecentItem>({
   emptyLabel,
 }: RecentListProps<T>) {
   return (
-    <Card className="flex flex-col shadow-xs transition-shadow duration-200 hover:shadow-md">
+    <Card className="flex flex-col rounded-2xl shadow-xs transition-shadow duration-200 hover:shadow-md">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-base font-bold">
-          <Icon className="size-4 text-primary" aria-hidden="true" />
+          <Icon className="size-4 text-[#6B38C3] dark:text-[#A78BFA]" aria-hidden="true" />
           {title}
         </CardTitle>
         <CardDescription>{description}</CardDescription>
@@ -79,7 +79,7 @@ function RecentList<T extends RecentItem>({
         )}
         <Link
           href={viewAllHref}
-          className="group inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline pt-2"
+          className="group inline-flex items-center gap-1 text-xs font-semibold text-[#6B38C3] dark:text-[#A78BFA] hover:underline pt-2"
         >
           View all
           <ChevronRight className="size-3.5 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />

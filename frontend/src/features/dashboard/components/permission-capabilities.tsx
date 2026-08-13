@@ -52,10 +52,10 @@ function CapabilityCard({ group }: CapabilityCardProps) {
       hasPermission(PERMISSIONS.modules.view));
 
   return (
-    <Card className="group shadow-xs transition-all duration-200 hover:-translate-y-1 hover:shadow-md hover:border-primary/30">
+    <Card className="group rounded-2xl shadow-xs transition-all duration-200 hover:-translate-y-1 hover:shadow-md hover:border-[#6B38C3]/30 dark:hover:border-[#A78BFA]/30">
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center gap-2.5 text-base font-bold">
-          <span className="inline-flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary group-hover:scale-105 transition-transform">
+          <span className="inline-flex size-9 items-center justify-center rounded-xl bg-[#6B38C3]/10 text-[#6B38C3] dark:bg-[#A78BFA]/10 dark:text-[#A78BFA] group-hover:scale-105 transition-transform">
             <Icon className="size-4" aria-hidden="true" />
           </span>
           {group.label}
@@ -68,7 +68,7 @@ function CapabilityCard({ group }: CapabilityCardProps) {
       <CardContent className="space-y-3">
         <div className="flex flex-wrap gap-1.5">
           {group.permissions.map((key) => (
-            <Badge key={key} variant="outline" className="font-mono text-xs font-normal border-primary/20 bg-primary/5">
+            <Badge key={key} variant="outline" className="font-mono text-xs font-normal border-[#6B38C3]/20 bg-[#6B38C3]/5 dark:border-[#A78BFA]/20 dark:bg-[#A78BFA]/5">
               {formatPermissionAction(key)}
             </Badge>
           ))}
@@ -139,7 +139,7 @@ export function RbacQuickLinks() {
   if (!showAdminOverview) return null;
 
   return (
-    <Card className="shadow-xs transition-shadow duration-200 hover:shadow-md">
+    <Card className="rounded-2xl shadow-xs transition-shadow duration-200 hover:shadow-md">
       <CardHeader className="pb-2">
         <CardTitle className="text-base font-bold">Access management</CardTitle>
         <CardDescription>Quick links to RBAC administration areas you can access.</CardDescription>
@@ -149,7 +149,7 @@ export function RbacQuickLinks() {
           const Icon = link.icon;
           return (
             <Button key={link.href} variant="outline" size="sm" render={<Link href={link.href} />}>
-              <Icon className="size-3.5 text-primary" aria-hidden="true" />
+              <Icon className="size-3.5 text-[#6B38C3] dark:text-[#A78BFA]" aria-hidden="true" />
               {link.label}
             </Button>
           );

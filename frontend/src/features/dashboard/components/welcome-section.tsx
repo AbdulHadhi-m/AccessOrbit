@@ -13,11 +13,11 @@ export function WelcomeSection() {
   const readOnly = isReadOnlyPermissionSet(user.permissions);
 
   return (
-    <Card className="relative overflow-hidden border-primary/20 bg-gradient-to-r from-primary/10 via-card to-card shadow-xs">
-      <div className="absolute top-0 right-0 -mr-12 -mt-12 size-48 rounded-full bg-primary/10 blur-3xl pointer-events-none" />
+    <Card className="relative overflow-hidden rounded-2xl border-[#6B38C3]/20 bg-gradient-to-r from-[#6B38C3]/8 via-card to-card shadow-xs dark:border-[#A78BFA]/15 dark:from-[#A78BFA]/5">
+      <div className="absolute top-0 right-0 -mr-12 -mt-12 size-48 rounded-full bg-[#6B38C3]/8 blur-3xl pointer-events-none dark:bg-[#A78BFA]/5" />
       <CardHeader className="pb-3">
-        <div className="flex items-center gap-2">
-          <span className="flex size-7 items-center justify-center rounded-lg bg-primary/15 text-primary">
+        <div className="flex items-center gap-2.5">
+          <span className="flex size-8 items-center justify-center rounded-xl bg-[#6B38C3]/15 text-[#6B38C3] dark:bg-[#A78BFA]/15 dark:text-[#A78BFA]">
             <Sparkles className="size-4" aria-hidden="true" />
           </span>
           <CardTitle className="text-xl font-bold tracking-tight">
@@ -30,7 +30,7 @@ export function WelcomeSection() {
       </CardHeader>
       <CardContent className="flex flex-wrap items-center gap-2">
         {user.roles.map((role) => (
-          <Badge key={role.id} variant="secondary" className="gap-1 bg-primary/10 text-primary border-primary/20 font-medium">
+          <Badge key={role.id} variant="secondary" className="gap-1 bg-[#6B38C3]/10 text-[#6B38C3] border-[#6B38C3]/20 font-medium dark:bg-[#A78BFA]/10 dark:text-[#A78BFA] dark:border-[#A78BFA]/20">
             <ShieldCheck className="size-3" aria-hidden="true" />
             {role.name}
           </Badge>

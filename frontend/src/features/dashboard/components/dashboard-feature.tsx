@@ -24,7 +24,7 @@ const EMPTY_OVERVIEW: DashboardOverview = {
 function DashboardSkeleton({ access }: { access: DashboardAccess }) {
   return (
     <>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         {access.users && (
           <>
             <StatCard title="Total users" icon={Users} loading />
@@ -62,14 +62,14 @@ export function DashboardFeature() {
   const anySection = access.users || access.roles || access.permissions || access.modules;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <PageHeader
         title="Dashboard"
         description="System overview and RBAC health at a glance."
       />
 
       {!anySection ? (
-        <Card className="shadow-xs">
+        <Card className="shadow-xs rounded-2xl">
           <CardContent className="pt-6">
             <EmptyState
               icon={ShieldOff}
@@ -81,7 +81,7 @@ export function DashboardFeature() {
       ) : status === "loading" ? (
         <DashboardSkeleton access={access} />
       ) : status === "error" ? (
-        <Card className="shadow-xs">
+        <Card className="shadow-xs rounded-2xl">
           <CardContent className="pt-6">
             <ErrorState
               title="Could not load the dashboard"
@@ -94,15 +94,32 @@ export function DashboardFeature() {
         </Card>
       ) : data ? (
         <>
-          <StatsGrid data={data} access={access} />
+          <div className="space-y-4">
+            <h2 className="text-[#6B38C3] dark:text-[#A78BFA] font-extrabold text-base tracking-tight flex items-center gap-2 border-l-4 border-l-[#6B38C3] dark:border-l-[#A78BFA] pl-2.5 uppercase">
+              Overview
+            </h2>
+            <StatsGrid data={data} access={access} />
+          </div>
+
           {access.modules && data.hierarchy && (
-            <RbacOverview
-              modules={data.hierarchy.modules}
-              counts={data.hierarchy.counts}
-              loading={false}
-            />
+            <div className="space-y-4">
+              <h2 className="text-[#6B38C3] dark:text-[#A78BFA] font-extrabold text-base tracking-tight flex items-center gap-2 border-l-4 border-l-[#6B38C3] dark:border-l-[#A78BFA] pl-2.5 uppercase">
+                RBAC Architecture
+              </h2>
+              <RbacOverview
+                modules={data.hierarchy.modules}
+                counts={data.hierarchy.counts}
+                loading={false}
+              />
+            </div>
           )}
-          <RecentLists data={data} access={access} loading={false} />
+
+          <div className="space-y-4">
+            <h2 className="text-[#6B38C3] dark:text-[#A78BFA] font-extrabold text-base tracking-tight flex items-center gap-2 border-l-4 border-l-[#6B38C3] dark:border-l-[#A78BFA] pl-2.5 uppercase">
+              Recent Activity
+            </h2>
+            <RecentLists data={data} access={access} loading={false} />
+          </div>
         </>
       ) : null}
     </div>
